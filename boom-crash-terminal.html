@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-<title>MetaTrader 5 · Boom &amp; Crash Sniper Terminal</title>
+<title>MetaTrader 5 · Boom &amp; Crash Pro High-Speed Terminal</title>
 <style>
   :root {
     --mt5-bg: #1e222d;
@@ -57,7 +57,12 @@
     max-width: 100%;
   }
   .mt5-menu-items::-webkit-scrollbar { display: none; }
-  .mt5-menu-item { color: var(--mt5-text); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .mt5-menu-item {
+    color: var(--mt5-text);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
   .mt5-menu-item:hover { color: #fff; }
 
   .mt5-nav-store {
@@ -270,15 +275,38 @@
     position: relative;
     width: 100%;
     height: 100%;
-    cursor: crosshair;
+    overflow: hidden;
     min-height: 0;
     touch-action: none;
   }
   canvas { display: block; width: 100%; height: 100%; }
 
+  /* FLOATING AUTO-SCROLL TO LATEST PILL */
+  .autoscroll-btn {
+    position: absolute;
+    bottom: 35px;
+    right: 85px;
+    background: rgba(32, 36, 46, 0.9);
+    border: 1px solid var(--mt5-border);
+    border-radius: 4px;
+    color: var(--mt5-text);
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: none;
+    z-index: 15;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .autoscroll-btn:hover {
+    background: var(--mt5-accent);
+    color: #fff;
+    border-color: var(--mt5-accent);
+  }
+
   /* BOTTOM DOCK: MT5 TERMINAL TABS */
   .mt5-bottom-dock {
-    height: 80px;
+    height: 75px;
     background: var(--mt5-panel);
     border-top: 1px solid var(--mt5-border);
     display: flex;
@@ -392,15 +420,16 @@
       transform: translateX(0);
     }
 
-    .mt5-bottom-dock { height: 70px; }
+    .mt5-bottom-dock { height: 65px; }
     .terminal-logs { padding: 4px 10px; font-size: 10px; }
+    .autoscroll-btn { bottom: 30px; right: 78px; }
   }
 
   @media (max-width: 480px) {
     .mt5-titlebar { padding: 3px 6px; font-size: 10px; }
     .mt5-menu-items { gap: 8px; }
     .chart-info-banner { padding: 0 8px; font-size: 10px; }
-    .mt5-bottom-dock { height: 60px; }
+    .mt5-bottom-dock { height: 55px; }
     .terminal-tabs { height: 20px; }
     .term-tab { font-size: 9px; padding: 2px 8px; }
   }
@@ -408,7 +437,7 @@
 </head>
 <body>
 
-  <!-- Title bar with navigation links -->
+  <!-- Title bar with nav links -->
   <div class="mt5-titlebar">
     <div class="mt5-menu-items">
       <a href="index.html" class="mt5-nav-store">← Store</a>
@@ -425,7 +454,7 @@
       <span class="mt5-menu-item">Window</span>
       <span class="mt5-menu-item">Help</span>
     </div>
-    <div class="mt5-titlebar-right">MetaTrader 5 · Deriv Live Stream</div>
+    <div class="mt5-titlebar-right">MetaTrader 5 · Anchor-Zoom &amp; Price-Drag Engine</div>
   </div>
 
   <!-- MT5 Icon Toolbar -->
@@ -471,6 +500,7 @@
         <div>
           <span class="chart-sym-title" id="activeSymCode">BOOM 500 INDEX</span>
           <span style="color:var(--mt5-accent); margin-left: 6px;" id="activeTfLabel">M1</span>
+          <span style="color:var(--mt5-muted); font-size: 10px; margin-left: 8px;" id="bufferStatus">(400 Bars)</span>
         </div>
         <div class="chart-ohlc">
           <span>O: <b id="barO">-</b></span>
@@ -482,6 +512,7 @@
 
       <div id="chartWrapper">
         <canvas id="mt5Canvas"></canvas>
+        <button class="autoscroll-btn" id="btnAutoScroll" onclick="resumeAutoScroll()">⟳ Auto Scroll</button>
       </div>
     </main>
   </div>
@@ -496,7 +527,7 @@
     <div class="terminal-logs" id="terminalLogs">
       <div class="log-line">
         <span class="log-time">[System]</span>
-        <span>Initializing MetaTrader 5 charting engine with 1000 historical bars...</span>
+        <span>Initializing 400-bar high-speed buffer...</span>
       </div>
     </div>
   </footer>
@@ -518,50 +549,86 @@
 
 <script>
 /* ============================================================
-   SYMBOLS ACCESS CONFIGURATION
-   FREE (Unlocked): BOOM 300, BOOM 500, CRASH 300, CRASH 500
-   PAID / VIP (Locked): BOOM 600, BOOM 900, BOOM 1000, CRASH 600, CRASH 900, CRASH 1000
+   EXACT DERIV API SYMBOL CODES & ACCESS CONFIG
    ============================================================ */
 const BOOM_CRASH_CATALOG = [
   // FREE UNLOCKED
-  { symbol: 'BOOM300',   name: 'Boom 300 Index',   type: 'boom',  locked: false, base: 2100 },
-  { symbol: 'BOOM500',   name: 'Boom 500 Index',   type: 'boom',  locked: false, base: 4500 },
-  { symbol: 'CRASH300',  name: 'Crash 300 Index',  type: 'crash', locked: false, base: 1900 },
-  { symbol: 'CRASH500',  name: 'Crash 500 Index',  type: 'crash', locked: false, base: 4200 },
+  { symbol: 'BOOM300N',  displayName: 'Boom 300 Index',   type: 'boom',  locked: false, base: 2100 },
+  { symbol: 'BOOM500',   displayName: 'Boom 500 Index',   type: 'boom',  locked: false, base: 4500 },
+  { symbol: 'CRASH300N', displayName: 'Crash 300 Index',  type: 'crash', locked: false, base: 1900 },
+  { symbol: 'CRASH500',  displayName: 'Crash 500 Index',  type: 'crash', locked: false, base: 4200 },
 
   // PAID VIP LOCKED
-  { symbol: 'BOOM600',   name: 'Boom 600 Index',   type: 'boom',  locked: true,  base: 5200 },
-  { symbol: 'BOOM900',   name: 'Boom 900 Index',   type: 'boom',  locked: true,  base: 7800 },
-  { symbol: 'BOOM1000',  name: 'Boom 1000 Index',  type: 'boom',  locked: true,  base: 11200 },
-  { symbol: 'CRASH600',  name: 'Crash 600 Index',  type: 'crash', locked: true,  base: 5100 },
-  { symbol: 'CRASH900',  name: 'Crash 900 Index',  type: 'crash', locked: true,  base: 7600 },
-  { symbol: 'CRASH1000', name: 'Crash 1000 Index', type: 'crash', locked: true,  base: 9800 }
+  { symbol: 'BOOM600',   displayName: 'Boom 600 Index',   type: 'boom',  locked: true,  base: 5200 },
+  { symbol: 'BOOM900',   displayName: 'Boom 900 Index',   type: 'boom',  locked: true,  base: 7800 },
+  { symbol: 'BOOM1000',  displayName: 'Boom 1000 Index',  type: 'boom',  locked: true,  base: 11200 },
+  { symbol: 'CRASH600',  displayName: 'Crash 600 Index',  type: 'crash', locked: true,  base: 5100 },
+  { symbol: 'CRASH900',  displayName: 'Crash 900 Index',  type: 'crash', locked: true,  base: 7600 },
+  { symbol: 'CRASH1000', displayName: 'Crash 1000 Index', type: 'crash', locked: true,  base: 9800 }
 ];
-
-/* 1000 historical bars (per requirement) */
-const HISTORICAL_BARS = 1000;
 
 // Terminal State
 let ws = null;
+let pingInterval = null;
 let currentSymbol = 'BOOM500';
 let currentGranularity = 60; // M1
 let candleHistory = [];
 let signalEvents = [];
+const HISTORICAL_COUNT = 400; // Exactly 400 bars
 
-// Canvas State
+// Canvas & Interaction State
 const canvas = document.getElementById('mt5Canvas');
 const ctx = canvas.getContext('2d');
-let zoom = 8.0;                 // Zoom 8 shows ~125 bars of the 1000 loaded
+const btnAutoScroll = document.getElementById('btnAutoScroll');
+
+let zoom = 1.0;
 let panX = 0;
-let isDragging = false;
+let isAutoScroll = true;
+
+// Vertical Price Scale Manipulation
+let isManualPriceScale = false;
+let priceScaleMultiplier = 1.0;
+let priceOffset = 0;
+
+// Mouse Drag State
+let dragMode = null; // 'pan' | 'price'
 let dragStartX = 0;
+let dragStartY = 0;
+let dragStartPanX = 0;
+let dragStartPriceMultiplier = 1.0;
+let dragStartPriceOffset = 0;
+
+// Mouse Hover Crosshair
+let crosshairX = -1;
+let crosshairY = -1;
+let renderRequested = false;
+
+// Touch Pinch State
+let isPinching = false;
+let pinchStartDist = 0;
+let pinchStartZoom = 1.0;
+let pinchStartPanX = 0;
+let pinchMidX = 0;
 
 /* ============================================================
-   BACKGROUND STRATEGY ENGINE (STATE-MACHINE: NO SPAM)
-   RSI(2) 95/05 Extreme + EMA(70) Trend Alignment
+   RAF RENDER PIPELINE
+   ============================================================ */
+function requestRender() {
+  if (!renderRequested) {
+    renderRequested = true;
+    requestAnimationFrame(() => {
+      renderRequested = false;
+      drawCanvas();
+    });
+  }
+}
+
+/* ============================================================
+   BACKGROUND STRATEGY ENGINE
+   Discrete state machine prevents repeated cascade arrows.
    ============================================================ */
 function calculateEMA(values, period) {
-  const ema = new Array(values.length).fill(null);
+  const ema = new Float64Array(values.length);
   if (values.length < period) return ema;
   const k = 2 / (period + 1);
   let sum = 0;
@@ -574,7 +641,7 @@ function calculateEMA(values, period) {
 }
 
 function calculateRSI(closes, period = 2) {
-  const rsi = new Array(closes.length).fill(null);
+  const rsi = new Float64Array(closes.length);
   if (closes.length < period + 1) return rsi;
   let gains = 0, losses = 0;
   for (let i = 1; i <= period; i++) {
@@ -596,32 +663,33 @@ function calculateRSI(closes, period = 2) {
 
 function scanBackgroundSignals() {
   signalEvents = [];
-  if (candleHistory.length < 75) return;
+  const len = candleHistory.length;
+  if (len < 75) return;
 
-  const closes = candleHistory.map(c => c.close);
+  const closes = new Float64Array(len);
+  for (let i = 0; i < len; i++) closes[i] = candleHistory[i].close;
+
   const ema70 = calculateEMA(closes, 70);
   const rsi2 = calculateRSI(closes, 2);
 
   const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === currentSymbol);
   if (!symConfig || symConfig.locked) return;
 
-  // State-machine flags prevent consecutive signals in a single drop
   let armedForBuy = true;
   let armedForSell = true;
   let lastSignalIndex = -999;
 
-  for (let i = 71; i < candleHistory.length; i++) {
+  for (let i = 71; i < len; i++) {
     const price = closes[i];
     const trend = ema70[i];
     const osc = rsi2[i];
 
-    if (trend === null || osc === null) continue;
+    if (trend === 0) continue;
 
-    // Re-arm gates only after RSI recovers (Boom: up past 20, Crash: down below 80)
     if (osc > 20) armedForBuy = true;
     if (osc < 80) armedForSell = true;
 
-    // BOOM: BUY NOW (only first entry into oversold, min 8 candles apart)
+    // BOOM ENGINE: BUY NOW
     if (symConfig.type === 'boom' && armedForBuy && price > trend && osc <= 5.0) {
       if ((i - lastSignalIndex) >= 8) {
         signalEvents.push({
@@ -635,7 +703,7 @@ function scanBackgroundSignals() {
       }
     }
 
-    // CRASH: SELL NOW (only first entry into overbought, min 8 candles apart)
+    // CRASH ENGINE: SELL NOW
     if (symConfig.type === 'crash' && armedForSell && price < trend && osc >= 95.0) {
       if ((i - lastSignalIndex) >= 8) {
         signalEvents.push({
@@ -655,57 +723,89 @@ function scanBackgroundSignals() {
 
 function updateTerminalLogs() {
   const terminal = document.getElementById('terminalLogs');
-  terminal.innerHTML = '';
   if (!signalEvents.length) {
-    terminal.innerHTML = `<div class="log-line"><span class="log-time">[System]</span><span>Scanning ${currentSymbol} (${HISTORICAL_BARS} bars) for institutional confluence...</span></div>`;
+    terminal.innerHTML = `<div class="log-line"><span class="log-time">[System]</span><span>Analyzing 400 bars on ${currentSymbol} for institutional setups...</span></div>`;
     return;
   }
-  signalEvents.slice(-6).reverse().forEach(sig => {
+  let html = '';
+  const recent = signalEvents.slice(-6).reverse();
+  for (let i = 0; i < recent.length; i++) {
+    const sig = recent[i];
     const isBuy = sig.type === 'BUY NOW';
     const dateStr = new Date(sig.epoch * 1000).toLocaleTimeString();
-    const div = document.createElement('div');
-    div.className = 'log-line';
-    div.innerHTML = `
-      <span class="log-time">[${dateStr}]</span>
-      <span class="log-sig ${isBuy ? '' : 'sell'}">${sig.type}</span>
-      <span>at ${sig.price.toFixed(2)} on candle #${sig.index}</span>
-    `;
-    terminal.appendChild(div);
-  });
+    html += `
+      <div class="log-line">
+        <span class="log-time">[${dateStr}]</span>
+        <span class="log-sig ${isBuy ? '' : 'sell'}">${sig.type}</span>
+        <span>at ${sig.price.toFixed(2)} [Bar #${sig.index}]</span>
+      </div>`;
+  }
+  terminal.innerHTML = html;
 }
 
 /* ============================================================
-   DERIV WEBSOCKET MARKET DATA LINK
+   WEBSOCKET CONNECTION & KEEPALIVE PIPELINE
    ============================================================ */
 function connectWebSocket() {
-  if (ws) { try { ws.close(); } catch(e){} }
+  if (ws) {
+    try { ws.close(); } catch(e){}
+  }
+  clearInterval(pingInterval);
 
   const endpoint = 'wss://api.derivws.com/trading/v1/options/ws/public';
   document.getElementById('statusLabel').innerText = 'Connecting...';
   document.getElementById('statusDot').className = 'status-dot';
 
-  try { ws = new WebSocket(endpoint); }
-  catch(err) { initLocalSimulation(); return; }
+  try {
+    ws = new WebSocket(endpoint);
+  } catch(err) {
+    initLocalSimulation();
+    return;
+  }
 
   ws.onopen = () => {
     document.getElementById('statusLabel').innerText = 'Connected (MT5 Live)';
     document.getElementById('statusDot').className = 'status-dot live';
+
+    pingInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ ping: 1 }));
+      }
+    }, 20000);
+
     requestCandles(currentSymbol, currentGranularity);
   };
 
   ws.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
+      if (data.error) {
+        initLocalSimulation();
+        return;
+      }
+
       if (data.msg_type === 'candles') {
-        candleHistory = (data.candles || []).map(c => ({
-          epoch: c.epoch,
-          open: parseFloat(c.open),
-          high: parseFloat(c.high),
-          low: parseFloat(c.low),
-          close: parseFloat(c.close)
-        }));
+        const raw = data.candles || [];
+        if (!raw.length) {
+          initLocalSimulation();
+          return;
+        }
+
+        candleHistory = new Array(raw.length);
+        for (let i = 0; i < raw.length; i++) {
+          const c = raw[i];
+          candleHistory[i] = {
+            epoch: c.epoch,
+            open: parseFloat(c.open),
+            high: parseFloat(c.high),
+            low: parseFloat(c.low),
+            close: parseFloat(c.close)
+          };
+        }
+        document.getElementById('bufferStatus').innerText = `(${candleHistory.length} Bars)`;
+        if (isAutoScroll) resetViewportToLatest();
         scanBackgroundSignals();
-        resetViewToLatest();      /* pan so latest bars are visible */
+        requestRender();
       }
       else if (data.msg_type === 'ohlc') {
         const c = data.ohlc;
@@ -722,10 +822,15 @@ function connectWebSocket() {
             candleHistory[candleHistory.length - 1] = candle;
           } else {
             candleHistory.push(candle);
-            if (candleHistory.length > HISTORICAL_BARS) candleHistory.shift();
+            if (candleHistory.length > HISTORICAL_COUNT) candleHistory.shift();
+            if (isAutoScroll) {
+              const chartW = canvas.parentElement.clientWidth - 70;
+              const step = (chartW / 75) * zoom;
+              panX -= step;
+            }
           }
           scanBackgroundSignals();
-          renderMT5Chart();
+          requestRender();
           updateBidQuote(c.symbol, candle.close);
         }
       }
@@ -740,16 +845,21 @@ function connectWebSocket() {
 
 function requestCandles(symbol, granularity) {
   const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === symbol);
-  document.getElementById('activeSymCode').innerText = symConfig.name.toUpperCase();
+  document.getElementById('activeSymCode').innerText = symConfig.displayName.toUpperCase();
   document.getElementById('activeTfLabel').innerText = getTfName(granularity);
 
-  if (symConfig.locked) { showVipModal(symConfig.name); return; }
+  if (symConfig.locked) {
+    showVipModal(symConfig.displayName);
+    return;
+  }
+
+  document.getElementById('bufferStatus').innerText = '(Loading...)';
 
   if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ forget_all: ['candles', 'ohlc'] }));
+    ws.send(JSON.stringify({ forget_all: "candles" }));
     ws.send(JSON.stringify({
       ticks_history: symbol,
-      count: HISTORICAL_BARS,
+      count: HISTORICAL_COUNT,
       end: 'latest',
       granularity: granularity,
       style: 'candles',
@@ -763,10 +873,10 @@ function requestCandles(symbol, granularity) {
 function initLocalSimulation() {
   const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === currentSymbol) || BOOM_CRASH_CATALOG[0];
   let base = symConfig.base;
-  let time = Math.floor(Date.now() / 1000) - HISTORICAL_BARS * currentGranularity;
+  let time = Math.floor(Date.now() / 1000) - HISTORICAL_COUNT * currentGranularity;
 
-  candleHistory = [];
-  for (let i = 0; i < HISTORICAL_BARS; i++) {
+  candleHistory = new Array(HISTORICAL_COUNT);
+  for (let i = 0; i < HISTORICAL_COUNT; i++) {
     const isSpike = Math.random() < 0.08;
     let shift = symConfig.type === 'boom' ? -0.8 : 0.8;
     if (isSpike) {
@@ -776,65 +886,105 @@ function initLocalSimulation() {
     const close = base + shift;
     const high = Math.max(open, close) + Math.random() * 0.5;
     const low = Math.min(open, close) - Math.random() * 0.5;
-    candleHistory.push({ epoch: time, open, high, low, close });
+    candleHistory[i] = { epoch: time, open, high, low, close };
     base = close;
     time += currentGranularity;
   }
+  document.getElementById('bufferStatus').innerText = `(${candleHistory.length} Bars Demo)`;
+  if (isAutoScroll) resetViewportToLatest();
   scanBackgroundSignals();
-  resetViewToLatest();
+  requestRender();
 }
 
 /* ============================================================
-   CANVAS RENDERING ENGINE (AUTHENTIC MT5 DARK CHART STYLE)
+   CANVAS RENDERING ENGINE: DUAL-SCALE & ANCHOR RENDERING
    ============================================================ */
-function resetViewToLatest() {
-  const chartW = (canvas.parentElement.clientWidth || 800) - 70;
-  if (candleHistory.length === 0 || chartW <= 0) { renderMT5Chart(); return; }
-  const step = (chartW / candleHistory.length) * zoom;
-  panX = chartW - (candleHistory.length - 1) * step - step / 2;
-  renderMT5Chart();
+function resetViewportToLatest() {
+  const w = canvas.parentElement.clientWidth || 800;
+  const chartW = w - 70;
+  const baseStep = (chartW / 75) * zoom;
+  const totalWidth = candleHistory.length * baseStep;
+  panX = chartW - totalWidth - 45;
+  isAutoScroll = true;
+  btnAutoScroll.style.display = 'none';
 }
 
-function renderMT5Chart() {
-  const wrapEl = canvas.parentElement;
-  const w = wrapEl ? wrapEl.clientWidth : 0;
-  const h = wrapEl ? wrapEl.clientHeight : 0;
+function resumeAutoScroll() {
+  resetViewportToLatest();
+  requestRender();
+}
+
+function drawCanvas() {
+  const w = canvas.parentElement.clientWidth;
+  const h = canvas.parentElement.clientHeight;
   if (w <= 0 || h <= 0) return;
 
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.round(w * dpr);
-  canvas.height = Math.round(h * dpr);
-  /* FIX: reset transform on every render (original ctx.scale accumulated) */
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  /* DPR cap at 2 for speed on retina devices */
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+  /* Only resize backing store when dims actually change */
+  const targetW = Math.round(w * dpr);
+  const targetH = Math.round(h * dpr);
+  if (canvas.width !== targetW || canvas.height !== targetH) {
+    canvas.width = targetW;
+    canvas.height = targetH;
+  }
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = '#131722';
   ctx.fillRect(0, 0, w, h);
 
-  if (!candleHistory.length) return;
-
-  let minP = Infinity, maxP = -Infinity;
-  candleHistory.forEach(c => {
-    if (c.low < minP) minP = c.low;
-    if (c.high > maxP) maxP = c.high;
-  });
-
-  const pad = (maxP - minP) * 0.1 || 1;
-  minP -= pad;
-  maxP += pad;
+  const len = candleHistory.length;
+  if (!len) return;
 
   const chartW = w - 70;
   const chartH = h - 25;
-  const getY = val => chartH - ((val - minP) / (maxP - minP)) * chartH;
-  const step = (chartW / candleHistory.length) * zoom;
-  const bodyW = Math.max(1.5, step * 0.65);
+  const baseStep = (chartW / 75) * zoom;
+  const step = baseStep;
+  const bodyW = Math.max(2, step * 0.65);
 
-  /* Gridlines */
+  // 1. Visible window min/max
+  let visibleMin = Infinity, visibleMax = -Infinity;
+  let hasVisible = false;
+
+  for (let i = 0; i < len; i++) {
+    const x = panX + i * step + step / 2;
+    if (x >= -20 && x <= chartW + 20) {
+      const c = candleHistory[i];
+      if (c.low < visibleMin) visibleMin = c.low;
+      if (c.high > visibleMax) visibleMax = c.high;
+      hasVisible = true;
+    }
+  }
+
+  if (!hasVisible || visibleMin === visibleMax) {
+    visibleMin = candleHistory[len - 1].low - 1;
+    visibleMax = candleHistory[len - 1].high + 1;
+  }
+
+  const naturalPad = (visibleMax - visibleMin) * 0.1 || 1;
+  let minP = visibleMin - naturalPad;
+  let maxP = visibleMax + naturalPad;
+
+  if (isManualPriceScale) {
+    const midP = (minP + maxP) / 2;
+    const halfSpan = ((maxP - minP) / 2) * priceScaleMultiplier;
+    minP = midP - halfSpan + priceOffset;
+    maxP = midP + halfSpan + priceOffset;
+  }
+
+  const pDiff = maxP - minP;
+  const getY = val => chartH - ((val - minP) / pDiff) * chartH;
+  const getPriceAtY = y => maxP - (y / chartH) * pDiff;
+
+  // 2. Grid + price labels
   ctx.strokeStyle = '#1e2330';
   ctx.fillStyle = '#64748b';
   ctx.font = '10px monospace';
   ctx.lineWidth = 1;
+
   for (let i = 0; i <= 6; i++) {
-    const p = minP + ((maxP - minP) / 6) * i;
+    const p = minP + (pDiff / 6) * i;
     const y = getY(p);
     ctx.beginPath();
     ctx.moveTo(0, y);
@@ -843,11 +993,26 @@ function renderMT5Chart() {
     ctx.fillText(p.toFixed(2), chartW + 6, y + 3);
   }
 
-  /* Candles */
-  candleHistory.forEach((c, i) => {
+  // 3. Time axis
+  const timeStepIndex = Math.max(1, Math.floor(chartW / (step * 8)));
+  for (let i = 0; i < len; i += timeStepIndex) {
     const x = panX + i * step + step / 2;
-    if (x < -20 || x > chartW + 20) return;
+    if (x >= 0 && x <= chartW) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, chartH);
+      ctx.stroke();
+      const timeStr = new Date(candleHistory[i].epoch * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      ctx.fillText(timeStr, x - 15, chartH + 16);
+    }
+  }
 
+  // 4. Candles
+  for (let i = 0; i < len; i++) {
+    const x = panX + i * step + step / 2;
+    if (x < -20 || x > chartW + 20) continue;
+
+    const c = candleHistory[i];
     const isBull = c.close >= c.open;
     const yOpen = getY(c.open);
     const yClose = getY(c.close);
@@ -862,17 +1027,18 @@ function renderMT5Chart() {
 
     if (isBull) {
       ctx.fillStyle = '#00ff7f';
-      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(1, Math.abs(yClose - yOpen)));
+      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(2, Math.abs(yClose - yOpen)));
     } else {
       ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(1, Math.abs(yClose - yOpen)));
+      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(2, Math.abs(yClose - yOpen)));
     }
-  });
+  }
 
-  /* Signal arrows */
-  signalEvents.forEach(sig => {
+  // 5. Signals
+  for (let s = 0; s < signalEvents.length; s++) {
+    const sig = signalEvents[s];
     const x = panX + sig.index * step + step / 2;
-    if (x < 0 || x > chartW) return;
+    if (x < 0 || x > chartW) continue;
 
     if (sig.type === 'BUY NOW') {
       const y = getY(sig.price) + 10;
@@ -883,6 +1049,7 @@ function renderMT5Chart() {
       ctx.lineTo(x + 6, y + 12);
       ctx.closePath();
       ctx.fill();
+
       ctx.font = 'bold 10px -apple-system, sans-serif';
       ctx.fillStyle = '#00ff7f';
       ctx.textAlign = 'center';
@@ -896,17 +1063,18 @@ function renderMT5Chart() {
       ctx.lineTo(x + 6, y - 12);
       ctx.closePath();
       ctx.fill();
+
       ctx.font = 'bold 10px -apple-system, sans-serif';
       ctx.fillStyle = '#ef4444';
       ctx.textAlign = 'center';
       ctx.fillText('SELL NOW', x, y - 16);
     }
-  });
+  }
 
   ctx.textAlign = 'left';
 
-  /* Last price line */
-  const last = candleHistory[candleHistory.length - 1];
+  // 6. Live price line
+  const last = candleHistory[len - 1];
   const lastY = getY(last.close);
   ctx.strokeStyle = '#f5a623';
   ctx.setLineDash([3, 3]);
@@ -922,11 +1090,47 @@ function renderMT5Chart() {
   ctx.font = 'bold 10px monospace';
   ctx.fillText(last.close.toFixed(2), chartW + 5, lastY + 4);
 
-  /* OHLC banner */
-  document.getElementById('barO').innerText = last.open.toFixed(2);
-  document.getElementById('barH').innerText = last.high.toFixed(2);
-  document.getElementById('barL').innerText = last.low.toFixed(2);
-  document.getElementById('barC').innerText = last.close.toFixed(2);
+  // 7. Crosshair
+  if (crosshairX >= 0 && crosshairX <= chartW && crosshairY >= 0 && crosshairY <= chartH) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.setLineDash([2, 2]);
+
+    ctx.beginPath();
+    ctx.moveTo(crosshairX, 0);
+    ctx.lineTo(crosshairX, chartH);
+    ctx.moveTo(0, crosshairY);
+    ctx.lineTo(chartW, crosshairY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const hoverPrice = getPriceAtY(crosshairY);
+    ctx.fillStyle = '#2962ff';
+    ctx.fillRect(chartW, crosshairY - 8, 68, 16);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(hoverPrice.toFixed(2), chartW + 5, crosshairY + 4);
+
+    const hoverBarIndex = Math.floor((crosshairX - panX) / step);
+    if (hoverBarIndex >= 0 && hoverBarIndex < len) {
+      const hoverCandle = candleHistory[hoverBarIndex];
+      const hoverTime = new Date(hoverCandle.epoch * 1000).toLocaleTimeString();
+      ctx.fillStyle = '#2962ff';
+      ctx.fillRect(crosshairX - 30, chartH + 3, 60, 16);
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText(hoverTime, crosshairX, chartH + 15);
+      ctx.textAlign = 'left';
+
+      document.getElementById('barO').innerText = hoverCandle.open.toFixed(2);
+      document.getElementById('barH').innerText = hoverCandle.high.toFixed(2);
+      document.getElementById('barL').innerText = hoverCandle.low.toFixed(2);
+      document.getElementById('barC').innerText = hoverCandle.close.toFixed(2);
+    }
+  } else {
+    document.getElementById('barO').innerText = last.open.toFixed(2);
+    document.getElementById('barH').innerText = last.high.toFixed(2);
+    document.getElementById('barL').innerText = last.low.toFixed(2);
+    document.getElementById('barC').innerText = last.close.toFixed(2);
+  }
 }
 
 /* ============================================================
@@ -937,17 +1141,17 @@ function renderMarketWatch() {
   const q = document.getElementById('symFilter').value.toLowerCase();
 
   const filtered = BOOM_CRASH_CATALOG.filter(s =>
-    s.name.toLowerCase().includes(q) || s.symbol.toLowerCase().includes(q)
+    s.displayName.toLowerCase().includes(q) || s.symbol.toLowerCase().includes(q)
   );
 
   container.innerHTML = filtered.map(item => `
     <li class="mw-symbol-row ${item.symbol === currentSymbol ? 'active' : ''}" onclick="selectSymbol('${item.symbol}')">
       <div>
         <div class="mw-sym-name">
-          ${item.symbol}
+          ${item.displayName}
           ${item.locked ? '<span class="mw-lock">🔒</span>' : ''}
         </div>
-        <div style="font-size:10px; color:var(--mt5-muted)">${item.name}</div>
+        <div style="font-size:10px; color:var(--mt5-muted)">${item.symbol}</div>
       </div>
       <div style="text-align:right">
         <span class="mw-sym-bid" id="bid-${item.symbol}">${item.base.toFixed(2)}</span>
@@ -961,13 +1165,16 @@ function selectSymbol(symbol) {
   const target = BOOM_CRASH_CATALOG.find(s => s.symbol === symbol);
   if (!target) return;
 
-  if (target.locked) { showVipModal(target.name); return; }
+  if (target.locked) {
+    showVipModal(target.displayName);
+    return;
+  }
 
   currentSymbol = symbol;
   renderMarketWatch();
   requestCandles(currentSymbol, currentGranularity);
 
-  /* Auto-close mobile market watch after selection */
+  // Auto-close mobile market watch panel
   document.getElementById('marketWatchPanel').classList.remove('open');
 }
 
@@ -978,7 +1185,7 @@ function updateBidQuote(symbol, quote) {
 
 function showVipModal(name) {
   document.getElementById('vipPromptText').innerHTML = `
-    <strong>${name}</strong> is an institutional VIP contract reserved for exclusive Telegram members. Contact <strong>@vixstartgy</strong> directly to unlock full access to all 10 Boom &amp; Crash symbols.
+    <strong>${name}</strong> is an exclusive VIP contract. Contact <strong>@vixstartgy</strong> on Telegram to unlock instant VIP access.
   `;
   document.getElementById('vipModal').classList.add('show');
 }
@@ -998,7 +1205,248 @@ function getTfName(sec) {
 }
 
 /* ============================================================
-   EVENT BINDINGS & MOUSE + TOUCH CONTROLS
+   MOBILE MARKET WATCH TOGGLE
+   ============================================================ */
+const mobileMwToggle = document.getElementById('mobileMwToggle');
+if (mobileMwToggle) {
+  mobileMwToggle.addEventListener('click', () => {
+    document.getElementById('marketWatchPanel').classList.toggle('open');
+  });
+}
+
+/* ============================================================
+   ANCHOR ZOOM & PRICE FOREGROUND SCROLL CONTROLS (MOUSE)
+   ============================================================ */
+const wrap = document.getElementById('chartWrapper');
+
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const chartW = canvas.parentElement.clientWidth - 70;
+
+  if (mouseX > chartW) {
+    const vFactor = e.deltaY < 0 ? 0.9 : 1.1;
+    isManualPriceScale = true;
+    priceScaleMultiplier = Math.min(Math.max(0.1, priceScaleMultiplier * vFactor), 15.0);
+    requestRender();
+    return;
+  }
+
+  const zoomFactor = e.deltaY < 0 ? 1.12 : 0.89;
+  const newZoom = Math.min(Math.max(0.2, zoom * zoomFactor), 4.5);
+
+  const baseStep = (chartW / 75);
+  const oldStep = baseStep * zoom;
+  const newStep = baseStep * newZoom;
+
+  const barIndexAtMouse = (mouseX - panX) / oldStep;
+  panX = mouseX - barIndexAtMouse * newStep;
+  zoom = newZoom;
+
+  isAutoScroll = false;
+  btnAutoScroll.style.display = 'block';
+  requestRender();
+}, { passive: false });
+
+wrap.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const chartW = canvas.parentElement.clientWidth - 70;
+
+  if (mouseX > chartW) {
+    dragMode = 'price';
+    dragStartY = mouseY;
+    dragStartPriceMultiplier = priceScaleMultiplier;
+    dragStartPriceOffset = priceOffset;
+    isManualPriceScale = true;
+  } else {
+    dragMode = 'pan';
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartPanX = panX;
+    dragStartPriceOffset = priceOffset;
+  }
+});
+
+window.addEventListener('mouseup', () => { dragMode = null; });
+
+wrap.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  const chartW = canvas.parentElement.clientWidth - 70;
+
+  if (mouseX > chartW) {
+    wrap.style.cursor = 'ns-resize';
+  } else {
+    wrap.style.cursor = dragMode === 'pan' ? 'grabbing' : 'crosshair';
+  }
+
+  if (dragMode === 'price') {
+    const dY = mouseY - dragStartY;
+    const scaleFactor = Math.exp(dY * 0.006);
+    priceScaleMultiplier = Math.min(Math.max(0.08, dragStartPriceMultiplier * scaleFactor), 20.0);
+    requestRender();
+    return;
+  }
+  else if (dragMode === 'pan') {
+    const dX = e.clientX - dragStartX;
+    panX = dragStartPanX + dX;
+
+    if (isManualPriceScale) {
+      const dY = e.clientY - dragStartY;
+      const chartH = canvas.parentElement.clientHeight - 25;
+      priceOffset = dragStartPriceOffset + (dY / chartH) * 50;
+    }
+
+    isAutoScroll = false;
+    btnAutoScroll.style.display = 'block';
+    requestRender();
+    return;
+  }
+
+  crosshairX = mouseX;
+  crosshairY = mouseY;
+  requestRender();
+});
+
+wrap.addEventListener('mouseleave', () => {
+  crosshairX = -1;
+  crosshairY = -1;
+  requestRender();
+});
+
+wrap.addEventListener('dblclick', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const chartW = canvas.parentElement.clientWidth - 70;
+
+  if (mouseX > chartW) {
+    isManualPriceScale = false;
+    priceScaleMultiplier = 1.0;
+    priceOffset = 0;
+  } else {
+    resumeAutoScroll();
+  }
+  requestRender();
+});
+
+/* ============================================================
+   TOUCH CONTROLS (Mobile)
+   1 finger: pan or price drag
+   2 finger: pinch zoom
+   ============================================================ */
+wrap.addEventListener('touchstart', e => {
+  e.preventDefault();
+
+  if (e.touches.length === 2) {
+    isPinching = true;
+    dragMode = null;
+    const t1 = e.touches[0];
+    const t2 = e.touches[1];
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    pinchStartDist = Math.sqrt(dx*dx + dy*dy);
+    pinchStartZoom = zoom;
+    pinchStartPanX = panX;
+    const rect = canvas.getBoundingClientRect();
+    pinchMidX = ((t1.clientX + t2.clientX) / 2) - rect.left;
+    return;
+  }
+
+  isPinching = false;
+  const touch = e.touches[0];
+  if (!touch) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const touchX = touch.clientX - rect.left;
+  const touchY = touch.clientY - rect.top;
+  const chartW = canvas.parentElement.clientWidth - 70;
+
+  if (touchX > chartW) {
+    dragMode = 'price';
+    dragStartY = touchY;
+    dragStartPriceMultiplier = priceScaleMultiplier;
+    dragStartPriceOffset = priceOffset;
+    isManualPriceScale = true;
+  } else {
+    dragMode = 'pan';
+    dragStartX = touch.clientX;
+    dragStartY = touch.clientY;
+    dragStartPanX = panX;
+    dragStartPriceOffset = priceOffset;
+  }
+}, { passive: false });
+
+wrap.addEventListener('touchmove', e => {
+  e.preventDefault();
+
+  if (e.touches.length === 2 && isPinching) {
+    const t1 = e.touches[0];
+    const t2 = e.touches[1];
+    const dx = t1.clientX - t2.clientX;
+    const dy = t1.clientY - t2.clientY;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    const chartW = canvas.parentElement.clientWidth - 70;
+    const baseStep = (chartW / 75);
+    const oldStep = baseStep * pinchStartZoom;
+    const newZoom = Math.min(Math.max(0.2, pinchStartZoom * (dist / pinchStartDist)), 4.5);
+    const newStep = baseStep * newZoom;
+
+    const barIndexAtMid = (pinchMidX - pinchStartPanX) / oldStep;
+    panX = pinchMidX - barIndexAtMid * newStep;
+    zoom = newZoom;
+
+    isAutoScroll = false;
+    btnAutoScroll.style.display = 'block';
+    requestRender();
+    return;
+  }
+
+  const touch = e.touches[0];
+  if (!touch) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const touchY = touch.clientY - rect.top;
+
+  if (dragMode === 'price') {
+    const dY = touchY - dragStartY;
+    const scaleFactor = Math.exp(dY * 0.006);
+    priceScaleMultiplier = Math.min(Math.max(0.08, dragStartPriceMultiplier * scaleFactor), 20.0);
+    requestRender();
+    return;
+  }
+  else if (dragMode === 'pan') {
+    const dX = touch.clientX - dragStartX;
+    panX = dragStartPanX + dX;
+
+    if (isManualPriceScale) {
+      const dY = touch.clientY - dragStartY;
+      const chartH = canvas.parentElement.clientHeight - 25;
+      priceOffset = dragStartPriceOffset + (dY / chartH) * 50;
+    }
+
+    isAutoScroll = false;
+    btnAutoScroll.style.display = 'block';
+    requestRender();
+    return;
+  }
+}, { passive: false });
+
+wrap.addEventListener('touchend', e => {
+  dragMode = null;
+  isPinching = false;
+  crosshairX = -1;
+  crosshairY = -1;
+  requestRender();
+}, { passive: true });
+
+/* ============================================================
+   TIMEFRAME PILLS, FILTER, RESIZE
    ============================================================ */
 document.querySelectorAll('.tf-pill[data-tf]').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1011,56 +1459,17 @@ document.querySelectorAll('.tf-pill[data-tf]').forEach(btn => {
 
 document.getElementById('symFilter').addEventListener('input', renderMarketWatch);
 
-/* Mobile market watch toggle */
-const mobileMwToggle = document.getElementById('mobileMwToggle');
-if (mobileMwToggle) {
-  mobileMwToggle.addEventListener('click', () => {
-    document.getElementById('marketWatchPanel').classList.toggle('open');
-  });
-}
-
-/* Canvas drag & zoom (mouse) */
-const wrap = document.getElementById('chartWrapper');
-wrap.addEventListener('mousedown', e => { isDragging = true; dragStartX = e.clientX - panX; });
-window.addEventListener('mouseup', () => { isDragging = false; });
-wrap.addEventListener('mousemove', e => {
-  if (isDragging) { panX = e.clientX - dragStartX; renderMT5Chart(); }
-});
-wrap.addEventListener('wheel', e => {
-  e.preventDefault();
-  zoom = Math.min(Math.max(0.4, zoom * (e.deltaY < 0 ? 1.12 : 0.88)), 20.0);
-  renderMT5Chart();
-}, { passive: false });
-
-/* Canvas drag & zoom (touch) */
-wrap.addEventListener('touchstart', e => {
-  if (e.touches.length === 1) {
-    isDragging = true;
-    dragStartX = e.touches[0].clientX - panX;
-  }
-}, { passive: true });
-wrap.addEventListener('touchmove', e => {
-  if (isDragging && e.touches.length === 1) {
-    panX = e.touches[0].clientX - dragStartX;
-    renderMT5Chart();
-  }
-}, { passive: true });
-wrap.addEventListener('touchend', () => { isDragging = false; });
-
-/* Auto-resize */
-window.addEventListener('resize', renderMT5Chart);
-window.addEventListener('orientationchange', () => setTimeout(renderMT5Chart, 200));
+window.addEventListener('resize', requestRender);
+window.addEventListener('orientationchange', () => setTimeout(requestRender, 200));
 
 if (window.ResizeObserver) {
-  const ro = new ResizeObserver(() => renderMT5Chart());
+  const ro = new ResizeObserver(() => requestRender());
   ro.observe(wrap);
 }
 
-window.addEventListener('load', () => {
-  setTimeout(renderMT5Chart, 60);
-});
-
-/* BOOT */
+/* ============================================================
+   BOOT
+   ============================================================ */
 renderMarketWatch();
 connectWebSocket();
 </script>
