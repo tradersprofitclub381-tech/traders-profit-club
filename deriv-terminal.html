@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traders Profit Club · Deriv Terminal</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#131829; --surface-2:#1a2138; --border:#232b45;
+    --text:#e8ecf7; --text-dim:#8892b0;
+    --gold:#f5a623; --cyan:#00d9ff; --green:#22c55e; --red:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;
+    -webkit-font-smoothing:antialiased}
+  button{cursor:pointer;font-family:inherit}
+  input,select{font-family:inherit}
+
+  /* TOPBAR */
+  .topbar{position:sticky;top:0;z-index:200;display:flex;align-items:center;
+    justify-content:space-between;padding:8px 16px;background:var(--surface);
+    border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .brand-logo{width:34px;height:34px;border-radius:9px;
+    background:linear-gradient(135deg,var(--gold) 0%,#ff8c00 100%);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;font-weight:900;color:#0a0e1a;
+    box-shadow:0 0 20px rgba(245,166,35,0.3)}
+  .brand-name{font-size:15px;font-weight:800}
+  .brand-name span{color:var(--gold)}
+  .brand-tag{font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase}
+
+  /* SITE NAV (cross-links to other pages) */
+  .site-nav{display:flex;gap:4px;align-items:center;flex-wrap:wrap;flex:1;justify-content:center}
+  .site-nav a{padding:5px 10px;border-radius:5px;font-size:11px;font-weight:600;
+    color:var(--text-dim);text-decoration:none;border:1px solid var(--border);
+    background:var(--surface-2);transition:all 0.15s;white-space:nowrap}
+  .site-nav a:hover{color:var(--gold);border-color:rgba(245,166,35,0.5)}
+  .site-nav a.active{color:var(--gold);border-color:var(--gold);
+    background:rgba(245,166,35,0.12)}
+
+  .topbar-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .endpoint-selector{padding:6px 10px;background:var(--surface-2);
+    border:1px solid var(--border);border-radius:6px;color:var(--text);
+    font-size:11px;font-weight:600;max-width:240px}
+  .endpoint-selector:focus{outline:none;border-color:var(--gold)}
+  .btn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;
+    border:1px solid var(--border);background:var(--surface-2);color:var(--text);
+    transition:all 0.2s}
+  .btn:hover{background:var(--border);border-color:var(--gold)}
+  .btn-primary{background:linear-gradient(135deg,var(--gold) 0%,#ff8c00 100%);
+    color:#0a0e1a;border:none}
+  .btn-primary:hover{box-shadow:0 4px 15px rgba(245,166,35,0.4)}
+  .btn-sim{background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.4);color:var(--green)}
+  .btn-sim:hover{background:var(--green);color:#0a0e1a}
+  .status-chip{display:flex;align-items:center;gap:8px;padding:5px 12px;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:999px;
+    font-size:11px;font-weight:600;min-width:140px;}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0}
+  .status-dot.connected{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse-dot 2s infinite}
+  .status-dot.connecting{background:var(--gold);animation:pulse-dot 1s infinite}
+  @keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.4}}
+  .mobile-toggle{display:none;padding:6px 10px;font-size:14px}
+
+  /* HELP PANEL */
+  .connection-help{display:none;padding:12px 18px;background:rgba(239,68,68,0.08);border-bottom:1px solid rgba(239,68,68,0.3)}
+  .connection-help.show{display:block}
+  .help-box{max-width:900px;margin:0 auto;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+
+  /* LAYOUT */
+  .layout{display:grid;grid-template-columns:300px 1fr 330px}
+  @media(min-width:901px){
+    .layout{height:calc(100vh - 53px)}
+    .sidebar,.right-panel{overflow-y:auto}
+    .main{display:flex;flex-direction:column;overflow:hidden}
+  }
+
+  /* SIDEBAR */
+  .sidebar{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .sidebar-header{padding:12px;border-bottom:1px solid var(--border)}
+  .sidebar-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between}
+  .sidebar-title .count{font-size:10px;color:var(--gold);background:var(--surface-2);padding:2px 6px;border-radius:4px}
+  .sidebar-search{width:100%;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;margin-bottom:8px}
+  .market-tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+  .market-tabs::-webkit-scrollbar{display:none}
+  .tab-btn{padding:4px 8px;font-size:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--text-dim);white-space:nowrap;font-weight:600}
+  .tab-btn.active{background:var(--gold);color:#0a0e1a;border-color:var(--gold)}
+  .open-only-toggle{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim);cursor:pointer}
+  .open-only-toggle input{accent-color:var(--gold)}
+  .symbol-list{flex:1;overflow-y:auto;padding:4px 0}
+  .symbol-category{padding:8px 12px 4px;font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .symbol-category::before{content:'';width:3px;height:3px;background:var(--gold);border-radius:50%}
+  .symbol-item{padding:7px 12px;border-left:3px solid transparent;cursor:pointer;transition:all 0.15s;display:flex;justify-content:space-between;align-items:center}
+  .symbol-item:hover{background:var(--surface-2);border-left-color:rgba(245,166,35,0.4)}
+  .symbol-item.active{background:rgba(245,166,35,0.1);border-left-color:var(--gold)}
+  .symbol-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .symbol-sub{font-size:10px;color:var(--text-dim)}
+  .symbol-item.active .symbol-name{color:var(--gold)}
+  .symbol-item.closed{opacity:0.55}
+  .symbol-badge{font-size:8px;padding:2px 4px;border-radius:3px;background:var(--surface-2);color:var(--text-dim);font-weight:700}
+  .symbol-badge.open{background:rgba(34,197,94,0.15);color:var(--green)}
+  .symbol-badge.closed-badge{background:rgba(239,68,68,0.15);color:var(--red)}
+
+  /* MAIN */
+  .main{background:var(--bg)}
+  .chart-header{padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .chart-symbol-name{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+  .chart-symbol-code{font-size:10px;color:var(--text-dim);font-family:monospace;background:var(--surface-2);padding:2px 6px;border-radius:3px}
+  .chart-symbol-desc{font-size:11px;color:var(--text-dim)}
+  .controls-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .chart-tools{display:flex;background:var(--surface-2);border-radius:6px;border:1px solid var(--border);overflow:hidden}
+  .tool-btn{padding:5px 9px;border:none;background:transparent;color:var(--text-dim);font-size:11px;font-weight:700}
+  .tool-btn.active{background:var(--gold);color:#0a0e1a}
+  .tf-group{display:flex;gap:3px}
+  .tf-btn{padding:5px 8px;background:var(--surface-2);border:1px solid var(--border);border-radius:5px;color:var(--text-dim);font-size:11px;font-weight:700}
+  .tf-btn:hover{color:var(--text)}
+  .tf-btn.active{background:var(--gold);color:#0a0e1a;border-color:var(--gold)}
+
+  .chart-wrap{background:#0d1220;position:relative;flex:1;min-height:360px;cursor:crosshair;user-select:none}
+  #chartCanvas{width:100%;height:100%;display:block}
+  .chart-loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,14,26,0.85);z-index:10;font-size:13px;color:var(--text-dim);flex-direction:column;gap:10px}
+  .chart-loading.show{display:flex}
+  .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .chart-legend{position:absolute;top:10px;left:12px;display:flex;gap:12px;font-size:10px;font-weight:600;background:rgba(10,14,26,0.8);padding:5px 9px;border-radius:5px;border:1px solid var(--border);z-index:5}
+  .legend-item{display:flex;align-items:center;gap:4px}
+  .legend-line{width:12px;height:2px;border-radius:1px}
+  .chart-hud{position:absolute;top:40px;left:12px;display:none;background:rgba(19,24,41,0.92);padding:6px 10px;border-radius:5px;border:1px solid var(--border);font-family:monospace;font-size:11px;gap:8px;z-index:5;pointer-events:none}
+  .reset-zoom-btn{position:absolute;bottom:12px;left:12px;z-index:5;padding:4px 8px;font-size:10px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);border-radius:4px;display:none}
+  .reset-zoom-btn:hover{color:#fff;border-color:var(--gold)}
+
+  .indicators-bar{background:var(--surface);border-top:1px solid var(--border);padding:10px 16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+  .ind-card{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 10px}
+  .ind-label{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.5px;font-weight:700;margin-bottom:3px}
+  .ind-value{font-size:13px;font-weight:800;font-family:'Courier New',monospace}
+  .ind-value.bull{color:var(--green)}
+  .ind-value.bear{color:var(--red)}
+  .ind-value.neutral{color:var(--text)}
+  .ind-value.gold{color:var(--gold)}
+  .ind-value.cyan{color:var(--cyan)}
+
+  /* RIGHT PANEL */
+  .right-panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column}
+  .panel-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+  .panel-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);margin-bottom:8px}
+
+  .signal-card{padding:14px;border-radius:9px;border:1px solid var(--border);text-align:center;background:var(--surface-2)}
+  .signal-card.strong_buy{background:linear-gradient(135deg,rgba(34,197,94,0.15) 0%,rgba(34,197,94,0.05) 100%);border-color:rgba(34,197,94,0.4)}
+  .signal-card.buy{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.25)}
+  .signal-card.neutral{background:rgba(136,146,176,0.08);border-color:rgba(136,146,176,0.25)}
+  .signal-card.sell{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25)}
+  .signal-card.strong_sell{background:linear-gradient(135deg,rgba(239,68,68,0.15) 0%,rgba(239,68,68,0.05) 100%);border-color:rgba(239,68,68,0.4)}
+  .signal-label{font-size:18px;font-weight:900;text-transform:uppercase;margin-bottom:2px}
+  .signal-card.strong_buy .signal-label{color:var(--green)}
+  .signal-card.buy .signal-label{color:#4ade80}
+  .signal-card.neutral .signal-label{color:var(--text-dim)}
+  .signal-card.sell .signal-label{color:#f87171}
+  .signal-card.strong_sell .signal-label{color:var(--red)}
+  .signal-sub{font-size:10px;color:var(--text-dim);margin-bottom:8px}
+  .confidence-bar{height:4px;background:rgba(0,0,0,0.3);border-radius:2px;overflow:hidden;margin-bottom:4px}
+  .confidence-fill{height:100%;transition:width 0.4s;border-radius:2px}
+  .confidence-label{font-size:10px;color:var(--text-dim);font-weight:600}
+  .score-display{font-family:'Courier New',monospace;font-size:11px;color:var(--text-dim);margin-top:6px}
+  .score-display b{color:var(--gold);font-size:12px}
+
+  .reasons{list-style:none;display:flex;flex-direction:column;gap:4px}
+  .reason-item{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:5px 8px;background:var(--surface-2);border-radius:5px;border:1px solid var(--border)}
+  .reason-item .txt{color:var(--text-dim);line-height:1.3}
+  .reason-item .pts{font-family:monospace;font-weight:800}
+  .reason-item .pts.pos{color:var(--green)}
+  .reason-item .pts.neg{color:var(--red)}
+  .reason-item .pts.zero{color:var(--text-dim)}
+
+  .live-quote{font-size:22px;font-weight:800;font-family:'Courier New',monospace;color:var(--gold);display:flex;align-items:center;gap:8px}
+  .live-change{font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px}
+  .live-change.up{background:rgba(34,197,94,0.15);color:var(--green)}
+  .live-change.down{background:rgba(239,68,68,0.15);color:var(--red)}
+  .live-sub{font-size:10px;color:var(--text-dim);margin-top:3px}
+  .live-tick-flash{animation:flashTick 0.35s}
+  @keyframes flashTick{0%{background:rgba(245,166,35,0.25);border-radius:4px}100%{background:transparent}}
+
+  .contract-chips{display:flex;flex-wrap:wrap;gap:4px}
+  .contract-chip{font-size:10px;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-weight:600}
+  .contract-chip.highlight{background:rgba(245,166,35,0.15);border-color:rgba(245,166,35,0.4);color:var(--gold)}
+
+  .empty-state{text-align:center;padding:14px 10px;color:var(--text-dim);font-size:11px}
+
+  .toast-container{position:fixed;top:60px;right:16px;z-index:2000;display:flex;flex-direction:column;gap:6px;max-width:280px}
+  .toast{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:11px;box-shadow:0 10px 40px rgba(0,0,0,0.5);display:flex;align-items:center;gap:8px}
+  .toast.success{border-color:var(--green)}
+  .toast.error{border-color:var(--red)}
+  .toast.info{border-color:var(--cyan)}
+
+  @media(max-width:900px){
+    .layout{grid-template-columns:1fr}
+    .mobile-toggle{display:block}
+    .site-nav{display:none}
+    .sidebar,.right-panel{position:fixed;top:53px;bottom:0;z-index:100;width:300px;transform:translateX(-100%);transition:transform 0.3s;background:var(--surface)}
+    .sidebar.mobile-open{transform:translateX(0)}
+    .right-panel{left:auto;right:0;transform:translateX(100%)}
+    .right-panel.mobile-open{transform:translateX(0)}
+    .chart-wrap{height:360px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">TP</div>
+    <div>
+      <div class="brand-name">Traders <span>Profit Club</span></div>
+      <div class="brand-tag">Deriv Full Symbols Terminal</div>
+    </div>
+  </div>
+  <nav class="site-nav">
+    <a href="index.html">← Store</a>
+    <a href="signals-dashboard.html">Signals</a>
+    <a href="live-analysis.html">Live Analysis</a>
+    <a href="deriv-terminal.html" class="active">Deriv Terminal</a>
+  </nav>
+  <div class="topbar-controls">
+    <select class="endpoint-selector" id="endpointSelector" title="Deriv WebSocket endpoint">
+      <option value="wss://api.derivws.com/trading/v1/options/ws/public">api.derivws.com (Options v1)</option>
+      <option value="wss://staging-api.derivws.com/trading/v1/options/ws/public">staging-api.derivws.com</option>
+      <option value="wss://ws.derivws.com/websockets/v3?app_id=1089">ws.derivws.com (Legacy v3)</option>
+      <option value="wss://ws.binaryws.com/websockets/v3?app_id=1089">ws.binaryws.com (Binary v3)</option>
+    </select>
+    <button class="btn btn-primary" id="connectBtn">⟳ Connect</button>
+    <button class="btn btn-sim" id="simBtn">Demo Mode</button>
+    <div class="status-chip">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connecting…</span>
+    </div>
+    <button class="btn mobile-toggle" id="sidebarToggle">☰</button>
+    <button class="btn mobile-toggle" id="panelToggle">📊</button>
+  </div>
+</header>
+
+<div class="connection-help" id="connectionHelp">
+  <div class="help-box">
+    <div style="font-size:18px;">⚠️</div>
+    <div style="flex:1; font-size:11px; color:#fca5a5;">
+      <strong>Unable to establish real-time WebSocket link</strong>
+      <p style="color:var(--text-dim); margin-top:2px;">Network firewall or DNS block detected. You can browse all symbols in <b>Demo Mode</b> or switch gateways.</p>
+    </div>
+    <button class="btn btn-sim" onclick="startOfflineMode()">Enable Demo Mode</button>
+  </div>
+</div>
+
+<div class="layout" id="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">
+        <span>Tradable Assets</span>
+        <span class="count" id="symbolCount">0</span>
+      </div>
+      <input type="text" class="sidebar-search" id="symbolSearch" placeholder="Search any symbol (e.g. 100, EUR, Gold, Crash)...">
+      <div class="market-tabs" id="marketTabs">
+        <button class="tab-btn active" data-market="all">All</button>
+        <button class="tab-btn" data-market="synthetic_index">Derived</button>
+        <button class="tab-btn" data-market="forex">Forex</button>
+        <button class="tab-btn" data-market="cryptocurrency">Crypto</button>
+        <button class="tab-btn" data-market="commodities">Commodities</button>
+        <button class="tab-btn" data-market="indices">Stock Indices</button>
+        <button class="tab-btn" data-market="basket_index">Baskets</button>
+      </div>
+      <label class="open-only-toggle">
+        <input type="checkbox" id="openOnly">
+        <span>Hide closed markets</span>
+      </label>
+    </div>
+    <div class="symbol-list" id="symbolList">
+      <div class="empty-state">Loading instruments catalog...</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="chart-header">
+      <div>
+        <div class="chart-symbol-name">
+          <span id="chartSymbolName">Volatility 100 Index</span>
+          <span class="chart-symbol-code" id="chartSymbolCode">R_100</span>
+        </div>
+        <div class="chart-symbol-desc" id="chartSymbolDesc">Derived · Continuous Indices</div>
+      </div>
+      <div class="controls-row">
+        <div class="chart-tools">
+          <button class="tool-btn active" id="btnModeCandles">Candles</button>
+          <button class="tool-btn" id="btnModeTicks">Line</button>
+        </div>
+        <div class="tf-group" id="tfGroup">
+          <button class="tf-btn" data-tf="60">M1</button>
+          <button class="tf-btn active" data-tf="300">M5</button>
+          <button class="tf-btn" data-tf="900">M15</button>
+          <button class="tf-btn" data-tf="3600">H1</button>
+          <button class="tf-btn" data-tf="14400">H4</button>
+          <button class="tf-btn" data-tf="86400">D1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-wrap" id="chartWrap">
+      <canvas id="chartCanvas"></canvas>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-line" style="background:var(--gold)"></div><span>EMA 50</span></div>
+        <div class="legend-item"><div class="legend-line" style="background:var(--cyan)"></div><span>EMA 200</span></div>
+        <div class="legend-item"><div class="legend-line" style="background:#a855f7"></div><span>BB (20,2)</span></div>
+      </div>
+      <div class="chart-hud" id="chartHUD"></div>
+      <button class="reset-zoom-btn" id="resetZoomBtn">⟲ Reset Zoom</button>
+
+      <div class="chart-loading" id="chartLoading">
+        <div class="spinner"></div>
+        <div id="chartLoadingText">Connecting to market feed...</div>
+      </div>
+    </div>
+
+    <div class="indicators-bar">
+      <div class="ind-card"><div class="ind-label">Price</div><div class="ind-value" id="indPrice">—</div></div>
+      <div class="ind-card"><div class="ind-label">RSI (14)</div><div class="ind-value" id="indRSI">—</div></div>
+      <div class="ind-card"><div class="ind-label">EMA 50</div><div class="ind-value gold" id="indEMA50">—</div></div>
+      <div class="ind-card"><div class="ind-label">EMA 200</div><div class="ind-value cyan" id="indEMA200">—</div></div>
+      <div class="ind-card"><div class="ind-label">MACD Hist</div><div class="ind-value" id="indMACD">—</div></div>
+      <div class="ind-card"><div class="ind-label">ATR (14)</div><div class="ind-value" id="indATR">—</div></div>
+      <div class="ind-card"><div class="ind-label">Bias</div><div class="ind-value" id="indTrend">—</div></div>
+    </div>
+  </main>
+
+  <aside class="right-panel" id="rightPanel">
+    <div class="panel-section">
+      <div class="panel-title">Trade Signal</div>
+      <div class="signal-card loading" id="signalCard">
+        <div class="signal-label" id="signalLabel">Analyzing…</div>
+        <div class="signal-sub" id="signalSub">Evaluating multi-timeframe indicators</div>
+        <div class="confidence-bar"><div class="confidence-fill" id="confidenceFill" style="width:0%"></div></div>
+        <div class="confidence-label" id="confidenceLabel">Confidence: —</div>
+        <div class="score-display">Confluence Score: <b id="scoreValue">—</b></div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">Real-Time Quote</div>
+      <div id="livePriceBox">
+        <div class="live-quote">
+          <span id="liveQuote">—</span>
+          <span class="live-change" id="liveChange" style="display:none">—</span>
+        </div>
+        <div class="live-sub" id="liveSub">Waiting for ticks...</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">Technical Breakdown</div>
+      <ul class="reasons" id="reasonsList">
+        <li class="empty-state">Collecting confluence indicators...</li>
+      </ul>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-title">Tradable Options</div>
+      <div class="contract-chips" id="contractChips">
+        <div class="empty-state">Loading contract types...</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+/* ============================================================
+   MASTER CATALOG: COMPLETE LIST OF ALL DERIV INSTRUMENTS (~130+)
+   ============================================================ */
+const DERIV_MASTER_SYMBOLS = [
+  // --- DERIVED / SYNTHETICS: VOLATILITY INDICES ---
+  { symbol: '1HZ10V', display_name: 'Volatility 10 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 1200 },
+  { symbol: '1HZ25V', display_name: 'Volatility 25 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 1800 },
+  { symbol: '1HZ50V', display_name: 'Volatility 50 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 260 },
+  { symbol: '1HZ75V', display_name: 'Volatility 75 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 98000 },
+  { symbol: '1HZ100V', display_name: 'Volatility 100 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 4500 },
+  { symbol: '1HZ150V', display_name: 'Volatility 150 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 6800 },
+  { symbol: '1HZ200V', display_name: 'Volatility 200 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 11000 },
+  { symbol: '1HZ250V', display_name: 'Volatility 250 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 13000 },
+  { symbol: '1HZ300V', display_name: 'Volatility 300 (1s) Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 16000 },
+  { symbol: 'R_10', display_name: 'Volatility 10 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 6400 },
+  { symbol: 'R_25', display_name: 'Volatility 25 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 2800 },
+  { symbol: 'R_50', display_name: 'Volatility 50 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 340 },
+  { symbol: 'R_75', display_name: 'Volatility 75 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 850000 },
+  { symbol: 'R_100', display_name: 'Volatility 100 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Continuous Indices', exchange_is_open: 1, base: 2100 },
+
+  // --- CRASH & BOOM ---
+  { symbol: 'BOOM300', display_name: 'Boom 300 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 2100 },
+  { symbol: 'BOOM500', display_name: 'Boom 500 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 4500 },
+  { symbol: 'BOOM600', display_name: 'Boom 600 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 5200 },
+  { symbol: 'BOOM900', display_name: 'Boom 900 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 7800 },
+  { symbol: 'BOOM1000', display_name: 'Boom 1000 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 11000 },
+  { symbol: 'CRASH300', display_name: 'Crash 300 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 1900 },
+  { symbol: 'CRASH500', display_name: 'Crash 500 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 4200 },
+  { symbol: 'CRASH600', display_name: 'Crash 600 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 5100 },
+  { symbol: 'CRASH900', display_name: 'Crash 900 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 7600 },
+  { symbol: 'CRASH1000', display_name: 'Crash 1000 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Crash/Boom', exchange_is_open: 1, base: 9800 },
+
+  // --- STEP INDICES ---
+  { symbol: 'STEPIND', display_name: 'Step Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Step Indices', exchange_is_open: 1, base: 8400 },
+  { symbol: 'STEP100', display_name: 'Step 100 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Step Indices', exchange_is_open: 1, base: 3100 },
+  { symbol: 'STEP200', display_name: 'Step 200 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Step Indices', exchange_is_open: 1, base: 5200 },
+  { symbol: 'STEP500', display_name: 'Step 500 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Step Indices', exchange_is_open: 1, base: 9600 },
+
+  // --- JUMP INDICES ---
+  { symbol: 'JD10', display_name: 'Jump 10 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Jump Indices', exchange_is_open: 1, base: 150000 },
+  { symbol: 'JD25', display_name: 'Jump 25 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Jump Indices', exchange_is_open: 1, base: 240000 },
+  { symbol: 'JD50', display_name: 'Jump 50 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Jump Indices', exchange_is_open: 1, base: 410000 },
+  { symbol: 'JD75', display_name: 'Jump 75 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Jump Indices', exchange_is_open: 1, base: 560000 },
+  { symbol: 'JD100', display_name: 'Jump 100 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Jump Indices', exchange_is_open: 1, base: 890000 },
+
+  // --- RANGE BREAK & DEX INDICES ---
+  { symbol: 'RANGE100', display_name: 'Range Break 100 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Range Break', exchange_is_open: 1, base: 5000 },
+  { symbol: 'RANGE200', display_name: 'Range Break 200 Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'Range Break', exchange_is_open: 1, base: 8000 },
+  { symbol: 'DEX600DN', display_name: 'DEX 600 Down Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 1200 },
+  { symbol: 'DEX600UP', display_name: 'DEX 600 Up Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 1400 },
+  { symbol: 'DEX900DN', display_name: 'DEX 900 Down Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 1600 },
+  { symbol: 'DEX900UP', display_name: 'DEX 900 Up Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 1800 },
+  { symbol: 'DEX1500DN', display_name: 'DEX 1500 Down Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 2200 },
+  { symbol: 'DEX1500UP', display_name: 'DEX 1500 Up Index', market: 'synthetic_index', market_display_name: 'Derived', submarket_display_name: 'DEX Indices', exchange_is_open: 1, base: 2500 },
+
+  // --- FOREX: MAJOR PAIRS ---
+  { symbol: 'frxEURUSD', display_name: 'EUR/USD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 1.0850 },
+  { symbol: 'frxGBPUSD', display_name: 'GBP/USD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 1.2950 },
+  { symbol: 'frxUSDJPY', display_name: 'USD/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 153.20 },
+  { symbol: 'frxUSDCHF', display_name: 'USD/CHF', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 0.8650 },
+  { symbol: 'frxAUDUSD', display_name: 'AUD/USD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 0.6580 },
+  { symbol: 'frxUSDCAD', display_name: 'USD/CAD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 1.3850 },
+  { symbol: 'frxNZDUSD', display_name: 'NZD/USD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Major Pairs', exchange_is_open: 1, base: 0.5980 },
+
+  // --- FOREX: MINOR PAIRS ---
+  { symbol: 'frxEURGBP', display_name: 'EUR/GBP', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.8350 },
+  { symbol: 'frxEURJPY', display_name: 'EUR/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 166.20 },
+  { symbol: 'frxGBPJPY', display_name: 'GBP/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 198.50 },
+  { symbol: 'frxEURCHF', display_name: 'EUR/CHF', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.9390 },
+  { symbol: 'frxAUDJPY', display_name: 'AUD/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 100.80 },
+  { symbol: 'frxEURCAD', display_name: 'EUR/CAD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.5030 },
+  { symbol: 'frxEURAUD', display_name: 'EUR/AUD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.6490 },
+  { symbol: 'frxGBPCHF', display_name: 'GBP/CHF', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.1210 },
+  { symbol: 'frxGBPAUD', display_name: 'GBP/AUD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.9680 },
+  { symbol: 'frxAUDCAD', display_name: 'AUD/CAD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.9120 },
+  { symbol: 'frxCADJPY', display_name: 'CAD/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 110.50 },
+  { symbol: 'frxCHFJPY', display_name: 'CHF/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 177.10 },
+  { symbol: 'frxNZDJPY', display_name: 'NZD/JPY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 91.50 },
+  { symbol: 'frxAUDNZD', display_name: 'AUD/NZD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.1010 },
+  { symbol: 'frxEURNZD', display_name: 'EUR/NZD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.8150 },
+  { symbol: 'frxGBPCAD', display_name: 'GBP/CAD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 1.7940 },
+  { symbol: 'frxGBPNZD', display_name: 'GBP/NZD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 2.1650 },
+  { symbol: 'frxNZDCAD', display_name: 'NZD/CAD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.8280 },
+  { symbol: 'frxNZDCHF', display_name: 'NZD/CHF', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.5180 },
+  { symbol: 'frxCADCHF', display_name: 'CAD/CHF', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Minor Pairs', exchange_is_open: 1, base: 0.6250 },
+
+  // --- FOREX: EXOTIC PAIRS ---
+  { symbol: 'frxUSDMXN', display_name: 'USD/MXN', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 19.85 },
+  { symbol: 'frxUSDZAR', display_name: 'USD/ZAR', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 17.65 },
+  { symbol: 'frxUSDSGD', display_name: 'USD/SGD', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 1.3210 },
+  { symbol: 'frxUSDTRY', display_name: 'USD/TRY', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 34.25 },
+  { symbol: 'frxUSDSEK', display_name: 'USD/SEK', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 10.65 },
+  { symbol: 'frxUSDNOK', display_name: 'USD/NOK', market: 'forex', market_display_name: 'Forex', submarket_display_name: 'Exotic Pairs', exchange_is_open: 1, base: 10.95 },
+
+  // --- CRYPTOCURRENCIES ---
+  { symbol: 'cryBTCUSD', display_name: 'BTC/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 72000 },
+  { symbol: 'cryETHUSD', display_name: 'ETH/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 2650 },
+  { symbol: 'crySOLUSD', display_name: 'SOL/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 178 },
+  { symbol: 'cryXRPUSD', display_name: 'XRP/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 0.52 },
+  { symbol: 'cryLTCUSD', display_name: 'LTC/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 73 },
+  { symbol: 'cryADAUSD', display_name: 'ADA/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 0.35 },
+  { symbol: 'cryDOTUSD', display_name: 'DOT/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 4.25 },
+  { symbol: 'cryDOGUSD', display_name: 'DOGE/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 0.16 },
+  { symbol: 'cryAVAXUSD', display_name: 'AVAX/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 26.5 },
+  { symbol: 'cryLNKUSD', display_name: 'LINK/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 11.8 },
+  { symbol: 'cryBCHUSD', display_name: 'BCH/USD', market: 'cryptocurrency', market_display_name: 'Crypto', submarket_display_name: 'Cryptocurrencies', exchange_is_open: 1, base: 365 },
+
+  // --- COMMODITIES: METALS & ENERGY ---
+  { symbol: 'gold', display_name: 'Gold/USD', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Metals', exchange_is_open: 1, base: 2750 },
+  { symbol: 'silver', display_name: 'Silver/USD', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Metals', exchange_is_open: 1, base: 33.80 },
+  { symbol: 'platinum', display_name: 'Platinum/USD', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Metals', exchange_is_open: 1, base: 1020 },
+  { symbol: 'palladium', display_name: 'Palladium/USD', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Metals', exchange_is_open: 1, base: 1150 },
+  { symbol: 'oil_crude', display_name: 'Brent Crude Oil', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Energy', exchange_is_open: 1, base: 73.50 },
+  { symbol: 'oil_wti', display_name: 'WTI Oil', market: 'commodities', market_display_name: 'Commodities', submarket_display_name: 'Energy', exchange_is_open: 1, base: 69.80 },
+
+  // --- STOCK INDICES ---
+  { symbol: 'OTC_SPC', display_name: 'US 500', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Americas', exchange_is_open: 1, base: 5820 },
+  { symbol: 'OTC_NDX', display_name: 'US Tech 100', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Americas', exchange_is_open: 1, base: 20400 },
+  { symbol: 'OTC_DJI', display_name: 'Wall Street 30', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Americas', exchange_is_open: 1, base: 42300 },
+  { symbol: 'OTC_DAX', display_name: 'Germany 40', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Europe', exchange_is_open: 1, base: 19500 },
+  { symbol: 'OTC_FTSE', display_name: 'UK 100', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Europe', exchange_is_open: 1, base: 8250 },
+  { symbol: 'OTC_N225', display_name: 'Japan 225', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Asia/Oceania', exchange_is_open: 1, base: 38800 },
+  { symbol: 'OTC_AS51', display_name: 'Australia 200', market: 'indices', market_display_name: 'Stock Indices', submarket_display_name: 'Asia/Oceania', exchange_is_open: 1, base: 8220 },
+
+  // --- BASKET INDICES ---
+  { symbol: 'WLDUSD', display_name: 'USD Basket', market: 'basket_index', market_display_name: 'Baskets', submarket_display_name: 'Forex Baskets', exchange_is_open: 1, base: 104.2 },
+  { symbol: 'WLDEUR', display_name: 'EUR Basket', market: 'basket_index', market_display_name: 'Baskets', submarket_display_name: 'Forex Baskets', exchange_is_open: 1, base: 97.4 },
+  { symbol: 'WLDGBP', display_name: 'GBP Basket', market: 'basket_index', market_display_name: 'Baskets', submarket_display_name: 'Forex Baskets', exchange_is_open: 1, base: 114.6 },
+  { symbol: 'WLDAUD', display_name: 'AUD Basket', market: 'basket_index', market_display_name: 'Baskets', submarket_display_name: 'Forex Baskets', exchange_is_open: 1, base: 88.3 },
+  { symbol: 'WLDXAU', display_name: 'Gold Basket', market: 'basket_index', market_display_name: 'Baskets', submarket_display_name: 'Commodity Baskets', exchange_is_open: 1, base: 275.5 }
+];
+
+// App State
+const state = {
+  ws: null,
+  isOffline: false,
+  offlineTimer: null,
+  allSymbols: [...DERIV_MASTER_SYMBOLS],
+  activeSymbol: 'R_100',
+  activeMarketTab: 'all',
+  chartStyle: 'candles',
+  timeframe: 300,
+  connecting: false,
+  lastCandleClose: null,
+};
+
+// Chart Viewport State
+const view = {
+  candles: [],
+  ema50: [],
+  ema200: [],
+  bbUpper: [],
+  bbLower: [],
+  zoom: 1,
+  panX: 0,
+  isDragging: false,
+  startX: 0,
+  crosshairX: null,
+  crosshairY: null,
+};
+
+const $ = id => document.getElementById(id);
+
+/* ---------- TECHNICAL INDICATOR CALCULATORS ---------- */
+function calcEMA(values, period) {
+  const out = new Array(values.length).fill(null);
+  if (values.length < period) return out;
+  const k = 2 / (period + 1);
+  let ema = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  out[period - 1] = ema;
+  for (let i = period; i < values.length; i++) {
+    ema = values[i] * k + ema * (1 - k);
+    out[i] = ema;
+  }
+  return out;
+}
+
+function calcBollingerBands(closes, period = 20, multiplier = 2) {
+  const upper = new Array(closes.length).fill(null);
+  const lower = new Array(closes.length).fill(null);
+  for (let i = period - 1; i < closes.length; i++) {
+    const slice = closes.slice(i - period + 1, i + 1);
+    const mean = slice.reduce((a, b) => a + b, 0) / period;
+    const variance = slice.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / period;
+    const stdDev = Math.sqrt(variance);
+    upper[i] = mean + multiplier * stdDev;
+    lower[i] = mean - multiplier * stdDev;
+  }
+  return { upper, lower };
+}
+
+function calcRSI(closes, period = 14) {
+  if (closes.length < period + 1) return null;
+  let g = 0, l = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = closes[i] - closes[i - 1];
+    if (d >= 0) g += d; else l -= d;
+  }
+  let ag = g / period, al = l / period;
+  for (let i = period + 1; i < closes.length; i++) {
+    const d = closes[i] - closes[i - 1];
+    ag = (ag * (period - 1) + (d > 0 ? d : 0)) / period;
+    al = (al * (period - 1) + (d < 0 ? -d : 0)) / period;
+  }
+  return al === 0 ? 100 : 100 - (100 / (1 + ag / al));
+}
+
+function calcMACD(closes) {
+  const e12 = calcEMA(closes, 12).filter(v => v !== null);
+  const e26 = calcEMA(closes, 26).filter(v => v !== null);
+  const len = Math.min(e12.length, e26.length);
+  if (!len) return { histogram: null };
+  const macdLine = [];
+  for (let i = 0; i < len; i++) macdLine.push(e12[e12.length - len + i] - e26[e26.length - len + i]);
+  const signal = calcEMA(macdLine, 9).filter(v => v !== null);
+  const last = macdLine[macdLine.length - 1];
+  const lastSig = signal[signal.length - 1];
+  return { histogram: (last != null && lastSig != null) ? (last - lastSig) : null };
+}
+
+function calcATR(candles, period = 14) {
+  if (candles.length < period + 1) return null;
+  const trs = [];
+  for (let i = 1; i < candles.length; i++) {
+    const c = candles[i], p = candles[i - 1];
+    trs.push(Math.max(c.high - c.low, Math.abs(c.high - p.close), Math.abs(c.low - p.close)));
+  }
+  return trs.slice(-period).reduce((a, b) => a + b, 0) / period;
+}
+
+/* ---------- SIGNAL ENGINE ---------- */
+function evaluateSignals(candles, code) {
+  const closes = candles.map(c => c.close);
+  if (closes.length < 20) return { label: 'CALIBRATING', cls: 'neutral', confidence: 0, score: 0, reasons: [] };
+
+  const price = closes[closes.length - 1];
+  const rsi = calcRSI(closes, 14);
+  const e50Arr = calcEMA(closes, 50);
+  const e200Arr = calcEMA(closes, 200);
+  const e50 = e50Arr[e50Arr.length - 1];
+  const e200 = e200Arr[e200Arr.length - 1];
+  const macd = calcMACD(closes);
+  const bb = calcBollingerBands(closes, 20, 2);
+  const bbU = bb.upper[bb.upper.length - 1];
+  const bbL = bb.lower[bb.lower.length - 1];
+
+  let score = 0;
+  const reasons = [];
+
+  if (e50 != null && e200 != null) {
+    if (price > e50 && e50 > e200) { score += 3; reasons.push({ pts: 3, text: 'Bullish Trend Stack (Price > EMA50 > EMA200)' }); }
+    else if (price < e50 && e50 < e200) { score -= 3; reasons.push({ pts: -3, text: 'Bearish Trend Stack (Price < EMA50 < EMA200)' }); }
+    else if (price > e50) { score += 1; reasons.push({ pts: 1, text: 'Price sustained above EMA50' }); }
+    else if (price < e50) { score -= 1; reasons.push({ pts: -1, text: 'Price rejected below EMA50' }); }
+  }
+
+  if (rsi != null) {
+    if (rsi <= 30) { score += 2; reasons.push({ pts: 2, text: `RSI Oversold (${rsi.toFixed(1)}) — Reversal Edge` }); }
+    else if (rsi >= 70) { score -= 2; reasons.push({ pts: -2, text: `RSI Overbought (${rsi.toFixed(1)}) — Exhaustion Edge` }); }
+    else if (rsi > 52) { score += 1; reasons.push({ pts: 1, text: `RSI Positive Velocity (${rsi.toFixed(1)})` }); }
+    else if (rsi < 48) { score -= 1; reasons.push({ pts: -1, text: `RSI Negative Velocity (${rsi.toFixed(1)})` }); }
+  }
+
+  if (macd.histogram != null) {
+    if (macd.histogram > 0) { score += 2; reasons.push({ pts: 2, text: 'MACD Histogram Positive Confluence' }); }
+    else if (macd.histogram < 0) { score -= 2; reasons.push({ pts: -2, text: 'MACD Histogram Negative Confluence' }); }
+  }
+
+  if (bbU && bbL) {
+    if (price <= bbL) { score += 2; reasons.push({ pts: 2, text: 'Price touching Lower Bollinger Band' }); }
+    else if (price >= bbU) { score -= 2; reasons.push({ pts: -2, text: 'Price testing Upper Bollinger Band' }); }
+  }
+
+  let label, cls;
+  if (score >= 4) { label = 'STRONG BUY'; cls = 'strong_buy'; }
+  else if (score >= 2) { label = 'BUY'; cls = 'buy'; }
+  else if (score <= -4) { label = 'STRONG SELL'; cls = 'strong_sell'; }
+  else if (score <= -2) { label = 'SELL'; cls = 'sell'; }
+  else { label = 'NEUTRAL'; cls = 'neutral'; }
+
+  return {
+    label, cls, score,
+    confidence: Math.min(100, Math.round(Math.abs(score) / 7 * 100)),
+    reasons, price, rsi, ema50: e50, ema200: e200, macd: macd.histogram
+  };
+}
+
+/* ---------- WEBSOCKET ---------- */
+function connectWebSocket() {
+  if (state.connecting) return;
+  state.connecting = true;
+  state.isOffline = false;
+  if (state.offlineTimer) clearInterval(state.offlineTimer);
+
+  if (state.ws) { try { state.ws.close(); } catch(e){} }
+
+  const endpoint = $('endpointSelector').value;
+  setStatus('connecting', 'Connecting…');
+  $('connectionHelp').classList.remove('show');
+  $('chartLoading').classList.add('show');
+
+  try {
+    state.ws = new WebSocket(endpoint);
+  } catch(err) {
+    setStatus('error', 'Error');
+    return;
+  }
+
+  state.ws.onopen = () => {
+    state.connecting = false;
+    setStatus('connected', 'Live Connected');
+    showToast('Connected to Deriv API', 'success');
+    state.ws.send(JSON.stringify({ active_symbols: 'full', product_type: 'basic' }));
+    requestHistory(state.activeSymbol);
+  };
+
+  state.ws.onmessage = (event) => {
+    try { handleMessage(JSON.parse(event.data)); }
+    catch(err) { console.error(err); }
+  };
+
+  state.ws.onerror = () => {
+    setStatus('error', 'Blocked');
+    $('connectionHelp').classList.add('show');
+  };
+
+  state.ws.onclose = () => {
+    state.connecting = false;
+    if (!state.isOffline) {
+      setStatus('error', 'Disconnected');
+      $('connectionHelp').classList.add('show');
+    }
+  };
+}
+
+function handleMessage(data) {
+  const type = data.msg_type;
+
+  if (type === 'active_symbols') {
+    const liveSymbols = data.active_symbols || [];
+    if (liveSymbols.length > 0) {
+      const map = new Map();
+      DERIV_MASTER_SYMBOLS.forEach(s => map.set(s.symbol, s));
+      liveSymbols.forEach(s => map.set(s.symbol, { ...map.get(s.symbol), ...s }));
+      state.allSymbols = Array.from(map.values());
+    }
+    $('symbolCount').textContent = state.allSymbols.length;
+    renderSymbols();
+  }
+  else if (type === 'candles') {
+    view.candles = (data.candles || []).map(c => ({
+      epoch: c.epoch, open: parseFloat(c.open), high: parseFloat(c.high),
+      low: parseFloat(c.low), close: parseFloat(c.close)
+    }));
+    recalcIndicators();
+    updateUI();
+    $('chartLoading').classList.remove('show');
+    drawChart();
+  }
+  else if (type === 'history') {
+    const prices = data.history?.prices || [];
+    const times = data.history?.times || [];
+    view.candles = prices.map((p, i) => ({ epoch: times[i], open: p, high: p, low: p, close: p }));
+    recalcIndicators();
+    updateUI();
+    $('chartLoading').classList.remove('show');
+    drawChart();
+  }
+  else if (type === 'ohlc') {
+    const c = data.ohlc;
+    const latest = {
+      epoch: c.open_time, open: parseFloat(c.open), high: parseFloat(c.high),
+      low: parseFloat(c.low), close: parseFloat(c.close)
+    };
+    if (view.candles.length > 0 && view.candles[view.candles.length - 1].epoch === latest.epoch) {
+      view.candles[view.candles.length - 1] = latest;
+    } else {
+      view.candles.push(latest);
+      if (view.candles.length > 300) view.candles.shift();
+    }
+    recalcIndicators();
+    drawChart();
+    updateUI();
+    updateLivePrice(latest.close);
+  }
+  else if (type === 'tick') {
+    const t = data.tick;
+    const quote = parseFloat(t.quote);
+    if (state.chartStyle === 'ticks') {
+      view.candles.push({ epoch: t.epoch, open: quote, high: quote, low: quote, close: quote });
+      if (view.candles.length > 300) view.candles.shift();
+      drawChart();
+    }
+    updateLivePrice(quote);
+  }
+  else if (type === 'contracts_for') {
+    renderContracts(data.contracts_for?.available || []);
+  }
+}
+
+function requestHistory(symbol) {
+  state.activeSymbol = symbol;
+  const symData = state.allSymbols.find(s => s.symbol === symbol) || { display_name: symbol, symbol };
+  $('chartSymbolName').textContent = symData.display_name.replace(/ Index$/, '');
+  $('chartSymbolCode').textContent = symData.symbol;
+  $('chartSymbolDesc').textContent = `${symData.market_display_name || ''} · ${symData.submarket_display_name || ''}`;
+
+  $('chartLoading').classList.add('show');
+
+  if (state.isOffline) { simulateOfflineFeed(); return; }
+  if (!state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+
+  state.ws.send(JSON.stringify({ forget_all: ['candles', 'ticks', 'ohlc'] }));
+
+  if (state.chartStyle === 'candles') {
+    state.ws.send(JSON.stringify({
+      ticks_history: symbol, adjust_start_time: 1, count: 180, end: 'latest',
+      granularity: state.timeframe, style: 'candles', subscribe: 1
+    }));
+  } else {
+    state.ws.send(JSON.stringify({
+      ticks_history: symbol, adjust_start_time: 1, count: 180, end: 'latest',
+      style: 'ticks', subscribe: 1
+    }));
+  }
+
+  state.ws.send(JSON.stringify({ contracts_for: symbol }));
+}
+
+/* ---------- OFFLINE DEMO ---------- */
+function startOfflineMode() {
+  if (state.ws) { try { state.ws.close(); } catch(e){} }
+  state.isOffline = true;
+  state.connecting = false;
+  $('connectionHelp').classList.remove('show');
+  setStatus('connected', 'Demo Simulation Active');
+  showToast('Entered Demo Mode with all Deriv symbols', 'info');
+  $('symbolCount').textContent = state.allSymbols.length;
+  renderSymbols();
+  simulateOfflineFeed();
+}
+
+function simulateOfflineFeed() {
+  if (state.offlineTimer) clearInterval(state.offlineTimer);
+  const symData = state.allSymbols.find(s => s.symbol === state.activeSymbol);
+  let basePrice = symData?.base || 1500;
+  let epoch = Math.floor(Date.now() / 1000) - 120 * state.timeframe;
+
+  view.candles = [];
+  for (let i = 0; i < 120; i++) {
+    const volatility = basePrice * 0.0025;
+    const shift = (Math.random() - 0.49) * volatility;
+    const open = basePrice;
+    const close = basePrice + shift;
+    const high = Math.max(open, close) + Math.random() * (volatility * 0.5);
+    const low = Math.min(open, close) - Math.random() * (volatility * 0.5);
+    view.candles.push({ epoch, open, high, low, close });
+    basePrice = close;
+    epoch += state.timeframe;
+  }
+
+  recalcIndicators();
+  updateUI();
+  $('chartLoading').classList.remove('show');
+  drawChart();
+
+  renderContracts([
+    { contract_category: 'callput', contract_category_display: 'Rise / Fall' },
+    { contract_category: 'callputequal', contract_category_display: 'Rise / Fall Equal' },
+    { contract_category: 'multiplier', contract_category_display: 'Multipliers' },
+    { contract_category: 'touchnotouch', contract_category_display: 'Touch / No Touch' },
+    { contract_category: 'highlow', contract_category_display: 'Higher / Lower' }
+  ]);
+
+  state.offlineTimer = setInterval(() => {
+    const last = view.candles[view.candles.length - 1];
+    const volatility = last.close * 0.0012;
+    const shift = (Math.random() - 0.49) * volatility;
+    last.close += shift;
+    if (last.close > last.high) last.high = last.close;
+    if (last.close < last.low) last.low = last.close;
+    recalcIndicators();
+    drawChart();
+    updateUI();
+    updateLivePrice(last.close);
+  }, 1000);
+}
+
+/* ---------- CHART ---------- */
+function initCanvasEvents() {
+  const wrap = $('chartWrap');
+  const canvas = $('chartCanvas');
+
+  wrap.addEventListener('mousedown', (e) => {
+    view.isDragging = true;
+    view.startX = e.clientX - view.panX;
+  });
+
+  window.addEventListener('mouseup', () => { view.isDragging = false; });
+
+  wrap.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    view.crosshairX = e.clientX - rect.left;
+    view.crosshairY = e.clientY - rect.top;
+    if (view.isDragging) {
+      view.panX = e.clientX - view.startX;
+      $('resetZoomBtn').style.display = 'block';
+    }
+    drawChart();
+  });
+
+  wrap.addEventListener('mouseleave', () => {
+    view.crosshairX = null;
+    view.crosshairY = null;
+    $('chartHUD').style.display = 'none';
+    drawChart();
+  });
+
+  wrap.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.12 : 0.88;
+    view.zoom = Math.min(Math.max(0.4, view.zoom * zoomFactor), 5.0);
+    $('resetZoomBtn').style.display = 'block';
+    drawChart();
+  }, { passive: false });
+
+  $('resetZoomBtn').addEventListener('click', () => {
+    view.zoom = 1;
+    view.panX = 0;
+    $('resetZoomBtn').style.display = 'none';
+    drawChart();
+  });
+}
+
+function drawChart() {
+  const canvas = $('chartCanvas');
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+
+  if (rect.width === 0 || rect.height === 0) return;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const W = rect.width, H = rect.height;
+  const pad = { top: 20, right: 80, bottom: 25, left: 10 };
+  const chartW = W - pad.left - pad.right;
+  const chartH = H - pad.top - pad.bottom;
+
+  ctx.fillStyle = '#0d1220';
+  ctx.fillRect(0, 0, W, H);
+
+  const candles = view.candles;
+  if (!candles.length) return;
+
+  let minP = Infinity, maxP = -Infinity;
+  candles.forEach(c => {
+    if (c.low < minP) minP = c.low;
+    if (c.high > maxP) maxP = c.high;
+  });
+
+  [view.ema50, view.ema200, view.bbUpper, view.bbLower].forEach(arr => {
+    arr.forEach(v => {
+      if (v != null) {
+        if (v < minP) minP = v;
+        if (v > maxP) maxP = v;
+      }
+    });
+  });
+
+  const rangePad = (maxP - minP) * 0.08 || 1;
+  minP -= rangePad;
+  maxP += rangePad;
+
+  const yScale = (p) => pad.top + chartH - ((p - minP) / (maxP - minP)) * chartH;
+  const baseStep = chartW / candles.length;
+  const stepX = baseStep * view.zoom;
+  const candleW = Math.max(2, stepX * 0.72);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  ctx.font = '10px monospace';
+
+  for (let i = 0; i <= 5; i++) {
+    const y = pad.top + (chartH / 5) * i;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + chartW, y);
+    ctx.stroke();
+    const price = maxP - ((maxP - minP) / 5) * i;
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.fillText(formatPrice(price), pad.left + chartW + 6, y + 4);
+  }
+
+  drawCurve(ctx, view.bbUpper, pad.left + view.panX, stepX, yScale, 'rgba(168,85,247,0.35)', 1);
+  drawCurve(ctx, view.bbLower, pad.left + view.panX, stepX, yScale, 'rgba(168,85,247,0.35)', 1);
+  drawCurve(ctx, view.ema50, pad.left + view.panX, stepX, yScale, '#f5a623', 1.5);
+  drawCurve(ctx, view.ema200, pad.left + view.panX, stepX, yScale, '#00d9ff', 1.5);
+
+  candles.forEach((c, i) => {
+    const x = pad.left + view.panX + i * stepX + stepX / 2;
+    if (x < pad.left - 20 || x > pad.left + chartW + 20) return;
+
+    if (state.chartStyle === 'candles') {
+      const isBull = c.close >= c.open;
+      const color = isBull ? '#22c55e' : '#ef4444';
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.moveTo(x, yScale(c.high));
+      ctx.lineTo(x, yScale(c.low));
+      ctx.stroke();
+      const y1 = yScale(Math.max(c.open, c.close));
+      const y2 = yScale(Math.min(c.open, c.close));
+      ctx.fillRect(x - candleW / 2, y1, candleW, Math.max(2, y2 - y1));
+    }
+  });
+
+  if (state.chartStyle === 'ticks') {
+    ctx.strokeStyle = '#00d9ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    candles.forEach((c, i) => {
+      const x = pad.left + view.panX + i * stepX + stepX / 2;
+      const y = yScale(c.close);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  const lastClose = candles[candles.length - 1].close;
+  const lastY = yScale(lastClose);
+  ctx.strokeStyle = 'rgba(245,166,35,0.6)';
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(pad.left, lastY);
+  ctx.lineTo(pad.left + chartW, lastY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#f5a623';
+  ctx.fillRect(pad.left + chartW, lastY - 9, 78, 18);
+  ctx.fillStyle = '#0a0e1a';
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText(formatPrice(lastClose), pad.left + chartW + 5, lastY + 4);
+
+  if (view.crosshairX != null && view.crosshairY != null &&
+      view.crosshairX >= pad.left && view.crosshairX <= pad.left + chartW) {
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(view.crosshairX, pad.top);
+    ctx.lineTo(view.crosshairX, pad.top + chartH);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pad.left, view.crosshairY);
+    ctx.lineTo(pad.left + chartW, view.crosshairY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const relX = view.crosshairX - pad.left - view.panX;
+    const idx = Math.min(Math.max(0, Math.floor(relX / stepX)), candles.length - 1);
+    const target = candles[idx];
+
+    if (target) {
+      const hud = $('chartHUD');
+      hud.style.display = 'flex';
+      hud.innerHTML = `
+        <span style="color:var(--text-dim)">${new Date(target.epoch * 1000).toLocaleTimeString()}</span>
+        <span>O: <b>${formatPrice(target.open)}</b></span>
+        <span>H: <b>${formatPrice(target.high)}</b></span>
+        <span>L: <b>${formatPrice(target.low)}</b></span>
+        <span>C: <b style="color:${target.close >= target.open ? '#22c55e' : '#ef4444'}">${formatPrice(target.close)}</b></span>
+      `;
+    }
+  }
+}
+
+function drawCurve(ctx, arr, startX, stepX, yScale, color, lw) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  let first = true;
+  arr.forEach((v, i) => {
+    if (v == null) return;
+    const x = startX + i * stepX + stepX / 2;
+    const y = yScale(v);
+    if (first) { ctx.moveTo(x, y); first = false; }
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+function recalcIndicators() {
+  const closes = view.candles.map(c => c.close);
+  view.ema50 = calcEMA(closes, 50);
+  view.ema200 = calcEMA(closes, 200);
+  const bb = calcBollingerBands(closes, 20, 2);
+  view.bbUpper = bb.upper;
+  view.bbLower = bb.lower;
+}
+
+/* ---------- UI ---------- */
+function updateUI() {
+  if (view.candles.length < 15) return;
+  const signal = evaluateSignals(view.candles, state.activeSymbol);
+  const rsi = calcRSI(view.candles.map(c => c.close), 14);
+  const atr = calcATR(view.candles, 14);
+  const price = view.candles[view.candles.length - 1].close;
+
+  $('indPrice').textContent = formatPrice(price);
+  if (rsi != null) {
+    $('indRSI').textContent = rsi.toFixed(1);
+    $('indRSI').className = 'ind-value ' + (rsi >= 70 ? 'bear' : rsi <= 30 ? 'bull' : 'neutral');
+  }
+  const e50 = view.ema50[view.ema50.length - 1];
+  const e200 = view.ema200[view.ema200.length - 1];
+  $('indEMA50').textContent = e50 ? formatPrice(e50) : '—';
+  $('indEMA200').textContent = e200 ? formatPrice(e200) : '—';
+
+  if (signal.macd != null) {
+    $('indMACD').textContent = signal.macd.toFixed(4);
+    $('indMACD').className = 'ind-value ' + (signal.macd > 0 ? 'bull' : 'bear');
+  }
+  $('indATR').textContent = atr ? formatPrice(atr) : '—';
+
+  let bias = 'Neutral', cls = 'neutral';
+  if (e50 && e200) {
+    if (price > e50 && e50 > e200) { bias = 'Strong Bull'; cls = 'bull'; }
+    else if (price < e50 && e50 < e200) { bias = 'Strong Bear'; cls = 'bear'; }
+  }
+  $('indTrend').textContent = bias;
+  $('indTrend').className = 'ind-value ' + cls;
+
+  const card = $('signalCard');
+  card.className = 'signal-card ' + signal.cls;
+  $('signalLabel').textContent = signal.label;
+  $('signalSub').textContent = signal.cls.includes('buy') ? 'Bullish confluences aligned'
+    : signal.cls.includes('sell') ? 'Bearish distribution aligned' : 'No directional edge';
+  $('confidenceFill').style.width = signal.confidence + '%';
+  $('confidenceFill').style.background = signal.cls.includes('buy') ? 'linear-gradient(90deg,#22c55e,#4ade80)'
+    : signal.cls.includes('sell') ? 'linear-gradient(90deg,#ef4444,#f87171)' : '#8892b0';
+  $('confidenceLabel').textContent = `Confidence: ${signal.confidence}%`;
+  $('scoreValue').textContent = (signal.score > 0 ? '+' : '') + signal.score;
+
+  if (signal.reasons.length) {
+    $('reasonsList').innerHTML = signal.reasons.map(r => `
+      <li class="reason-item">
+        <span class="txt">${escapeHtml(r.text)}</span>
+        <span class="pts ${r.pts > 0 ? 'pos' : r.pts < 0 ? 'neg' : 'zero'}">${r.pts > 0 ? '+' + r.pts : r.pts}</span>
+      </li>
+    `).join('');
+  }
+
+  state.lastCandleClose = view.candles[view.candles.length - 2]?.close || view.candles[0].close;
+}
+
+function updateLivePrice(quote) {
+  $('liveQuote').textContent = formatPrice(quote);
+  if (state.lastCandleClose != null) {
+    const change = ((quote - state.lastCandleClose) / state.lastCandleClose) * 100;
+    const badge = $('liveChange');
+    badge.style.display = 'inline-block';
+    badge.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+    badge.className = 'live-change ' + (change >= 0 ? 'up' : 'down');
+  }
+  $('liveSub').textContent = `Updated: ${new Date().toLocaleTimeString()}`;
+  const box = $('livePriceBox');
+  box.classList.remove('live-tick-flash');
+  void box.offsetWidth;
+  box.classList.add('live-tick-flash');
+}
+
+function renderContracts(avail) {
+  const categories = new Map();
+  avail.forEach(c => {
+    if (!categories.has(c.contract_category)) {
+      categories.set(c.contract_category, c.contract_category_display || c.contract_category);
+    }
+  });
+  const container = $('contractChips');
+  if (!categories.size) {
+    container.innerHTML = '<div class="empty-state">No active option contracts</div>';
+    return;
+  }
+  container.innerHTML = Array.from(categories.entries()).map(([k, name]) => {
+    const highlight = ['callput', 'multiplier', 'callputequal'].includes(k) ? 'highlight' : '';
+    return `<span class="contract-chip ${highlight}">${escapeHtml(name)}</span>`;
+  }).join('');
+}
+
+function renderSymbols() {
+  const query = ($('symbolSearch').value || '').toLowerCase();
+  const openOnly = $('openOnly').checked;
+  const filtered = state.allSymbols.filter(s => {
+    if (openOnly && !s.exchange_is_open) return false;
+    if (state.activeMarketTab !== 'all' && s.market !== state.activeMarketTab) return false;
+    if (query && !s.display_name.toLowerCase().includes(query) && !s.symbol.toLowerCase().includes(query)) return false;
+    return true;
+  }).sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+  const list = $('symbolList');
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-state">No matching instruments found</div>';
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(s => {
+    const key = s.submarket_display_name || s.market_display_name || 'Other';
+    (groups[key] = groups[key] || []).push(s);
+  });
+
+  let html = '';
+  Object.keys(groups).sort().forEach(cat => {
+    html += `<div class="symbol-category">${escapeHtml(cat)}</div>`;
+    groups[cat].forEach(sym => {
+      const active = sym.symbol === state.activeSymbol ? 'active' : '';
+      const closed = !sym.exchange_is_open ? 'closed' : '';
+      const badge = sym.exchange_is_open ? 'open' : 'closed-badge';
+      html += `
+        <div class="symbol-item ${active} ${closed}" onclick="selectSymbol('${sym.symbol}')">
+          <div>
+            <div class="symbol-name">${escapeHtml(sym.display_name.replace(/ Index$/, ''))}</div>
+            <div class="symbol-sub">${sym.symbol}</div>
+          </div>
+          <span class="symbol-badge ${badge}">${sym.exchange_is_open ? 'OPEN' : 'CLOSED'}</span>
+        </div>
+      `;
+    });
+  });
+  list.innerHTML = html;
+}
+
+function selectSymbol(code) {
+  state.activeSymbol = code;
+  renderSymbols();
+  requestHistory(code);
+  $('sidebar').classList.remove('mobile-open');
+}
+
+/* ---------- HELPERS ---------- */
+function setStatus(mode, text) {
+  const dot = $('statusDot');
+  dot.className = 'status-dot';
+  if (mode === 'connected') dot.classList.add('connected');
+  else if (mode === 'connecting') dot.classList.add('connecting');
+  $('statusText').textContent = text;
+}
+
+function showToast(msg, type = 'info') {
+  const c = $('toastContainer');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${type === 'success' ? '✓' : 'ℹ'}</span><span>${escapeHtml(msg)}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function formatPrice(p) {
+  if (p == null || isNaN(p)) return '—';
+  if (p > 10000) return p.toFixed(1);
+  if (p > 1000) return p.toFixed(2);
+  if (p > 10) return p.toFixed(3);
+  return p.toFixed(5);
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;' }[c]));
+}
+
+/* ---------- BOOT ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  $('symbolCount').textContent = state.allSymbols.length;
+  renderSymbols();
+  initCanvasEvents();
+  connectWebSocket();
+
+  $('connectBtn').addEventListener('click', connectWebSocket);
+  $('simBtn').addEventListener('click', startOfflineMode);
+  $('endpointSelector').addEventListener('change', () => connectWebSocket());
+
+  $('btnModeCandles').addEventListener('click', () => {
+    $('btnModeCandles').classList.add('active');
+    $('btnModeTicks').classList.remove('active');
+    state.chartStyle = 'candles';
+    requestHistory(state.activeSymbol);
+  });
+
+  $('btnModeTicks').addEventListener('click', () => {
+    $('btnModeTicks').classList.add('active');
+    $('btnModeCandles').classList.remove('active');
+    state.chartStyle = 'ticks';
+    requestHistory(state.activeSymbol);
+  });
+
+  $('tfGroup').addEventListener('click', e => {
+    const btn = e.target.closest('.tf-btn');
+    if (!btn) return;
+    document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.timeframe = parseInt(btn.dataset.tf);
+    requestHistory(state.activeSymbol);
+  });
+
+  $('symbolSearch').addEventListener('input', renderSymbols);
+  $('openOnly').addEventListener('change', renderSymbols);
+
+  $('marketTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.activeMarketTab = btn.dataset.market;
+    renderSymbols();
+  });
+
+  $('sidebarToggle').addEventListener('click', () => $('sidebar').classList.toggle('mobile-open'));
+  $('panelToggle').addEventListener('click', () => $('rightPanel').classList.toggle('mobile-open'));
+  window.addEventListener('resize', drawChart);
+});
+</script>
+</body>
+</html>

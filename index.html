@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>SearchMixed // Spatial Trading Intelligence Suite (MQL5 Official)</title>
+  <meta name="description" content="Spatial UI marketplace for Israr Hussain Shah (SearchMixed) official MQL5 products. Institutional Smart Money Concepts (SMC), Volume Profile, Order Flow, Boom & Crash synthetic indicators, and VIP signal networks.">
+  <meta name="theme-color" content="#05070e">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:title" content="SearchMixed // Spatial Trading Intelligence Suite">
+  <meta property="og:description" content="Explore and acquire 90+ institutional MetaTrader 4 & MetaTrader 5 tools directly from verified MQL5 seller Israr Hussain Shah. Official WhatsApp, Telegram, and Deriv broker partner.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://c.mql5.com/avatar/2026/3/69b14bc7-0aa6_big.jpg">
+  <meta property="og:url" content="https://www.mql5.com/en/users/searchmixed/seller">
+
+  <link rel="icon" type="image/x-icon" href="https://c.mql5.com/i/favicon4.ico">
+  
+  <!-- Preconnect to CDNs for speed -->
+  <link rel="preconnect" href="https://c.mql5.com">
+  <link rel="dns-prefetch" href="https://c.mql5.com">
+  <link rel="preconnect" href="https://track.deriv.me">
+
+  <!-- Spatial UI Stylesheet -->
+  <link rel="stylesheet" href="spatial.css">
+</head>
+<body>
+
+  <!-- Ambient Refraction & Particle Canvas -->
+  <canvas id="spatial-canvas"></canvas>
+
+  <!-- Specular Follower Glow -->
+  <div class="cursor-specular" id="cursor-glow"></div>
+
+  <!-- FLOATING SPATIAL QUICK CONTACT DOCK (ALWAYS ACCESSIBLE) -->
+  <aside class="floating-contact-dock" aria-label="Direct Trader Support Hub">
+    <div class="floating-contact-pill">
+      <!-- Glowing WhatsApp Button -->
+      <a class="glow-btn btn-glow-whatsapp" 
+         href="https://wa.me/923121764052" 
+         target="_blank" 
+         rel="noopener noreferrer" 
+         title="Chat directly with Israr Hussain Shah on WhatsApp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.998.546 1.763.818 2.796.818 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.769-5.768-5.769zm10.009 5.765c-.002 5.541-4.509 10.048-10.05 10.048-1.758 0-3.411-.462-4.856-1.272l-5.134 1.346 1.371-5.006c-.896-1.503-1.37-3.239-1.37-5.116.002-5.541 4.51-10.048 10.051-10.048 5.541 0 10.048 4.507 10.048 10.048z"></path>
+        </svg>
+        <span>WhatsApp Contact</span>
+      </a>
+
+      <!-- Glowing Telegram Button -->
+      <a class="glow-btn btn-glow-telegram" 
+         href="https://t.me/vixstartgy" 
+         target="_blank" 
+         rel="noopener noreferrer" 
+         title="Direct 1-on-1 Strategy Chat on Telegram (@vixstartgy)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.536-.196 1.006.128.832.941z"></path>
+        </svg>
+        <span>Telegram Inbox</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Spatial Shell -->
+  <div class="spatial-shell">
+
+    <!-- visionOS Floating Capsule Dock -->
+    <header class="spatial-nav-container">
+      <nav class="spatial-dock" aria-label="Main Navigation">
+        <a href="#top" class="dock-brand" title="SearchMixed Home">
+          <img class="dock-avatar" src="https://c.mql5.com/avatar/2026/3/69b14bc7-0aa6_big.jpg" alt="Israr Hussain Shah Avatar">
+          <div class="dock-brand-text">
+            <span class="dock-brand-name">SearchMixed</span>
+            <span class="dock-brand-tag">Verified Seller</span>
+          </div>
+        </a>
+
+        <ul class="dock-links">
+          <li><button class="dock-btn active" data-filter-collection="all">All Systems</button></li>
+          <li><button class="dock-btn" data-filter-collection="smc">SMC & ICT</button></li>
+          <li><button class="dock-btn" data-filter-collection="deriv">Boom & Crash</button></li>
+          <li><button class="dock-btn" data-filter-collection="volume">Order Flow</button></li>
+          <li><a href="signals-dashboard.html" class="dock-btn" style="color: #f59e0b; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width:6px;height:6px;background:#f59e0b;border-radius:50%;box-shadow:0 0 7px #f59e0b;animation:pulse-live-dot 1.5s infinite ease-in-out;display:inline-block;"></span>Signals
+          </a></li>
+          <li><a href="live-analysis.html" class="dock-btn live-analysis-nav-btn"><span class="live-indicator-dot"></span>Live Analysis</a></li>
+		            <li><a href="deriv-terminal.html" class="dock-btn" style="color: #00f0ff; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+            <span style="width:6px;height:6px;background:#00f0ff;border-radius:50%;box-shadow:0 0 7px #00f0ff;animation:pulse-live-dot 1.5s infinite ease-in-out;display:inline-block;"></span>Deriv Terminal
+          </a></li>
+          <li><a href="#broker-section" class="dock-btn" style="color: #ff6b74;">Best Broker</a></li>
+          <li><a href="#vip-section" class="dock-btn" style="color: var(--violet-neon);">VIP Results</a></li>
+          <li><a href="#community-section" class="dock-btn" style="color: var(--emerald-neon);">Communities</a></li>
+        </ul>
+
+        <div class="dock-actions">
+          <button class="audio-toggle-btn" id="audio-toggle" title="Toggle Spatial Audio (Glass Taps)" aria-label="Toggle Spatial Audio">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+          </button>
+
+          <a class="mql5-profile-btn" href="https://www.mql5.com/en/users/searchmixed/seller" target="_blank" rel="noopener noreferrer">
+            <span>MQL5 Profile</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Spatial Hero 3D Deck -->
+    <section class="spatial-hero" id="top">
+      <div class="hero-glass-deck">
+        <div class="hero-content">
+          <div class="hero-verified-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"></path>
+            </svg>
+            <span>Verified Official MQL5 Market Author // Israr Hussain Shah</span>
+          </div>
+
+          <h1 class="hero-title">Spatial Algorithmic Trading Suite</h1>
+          <p class="hero-subtitle">
+            Next-generation Smart Money Concepts (SMC), Volume Profile, Order Flow footprinting, and Boom & Crash synthetic engines. Click any tool to buy directly on the official MQL5 Market, trade on our recommended broker Deriv, or join our VIP signal channels below.
+          </p>
+
+          <div class="hero-metrics-grid">
+            <div class="metric-card">
+              <div class="metric-value" id="stat-total-tools">90+</div>
+              <div class="metric-label">Institutional Tools</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" id="stat-mt5-count">65+</div>
+              <div class="metric-label">MetaTrader 5 Native</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" id="stat-mt4-count">25+</div>
+              <div class="metric-label">MetaTrader 4 Native</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-value" id="stat-free-count">8</div>
+              <div class="metric-label">Free Tools Available</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECOMMENDED BROKER SPATIAL DECK (DERIV // BINARY & SYNTHETICS) -->
+    <section class="broker-spatial-deck" id="broker-section" aria-label="Official Broker Partner">
+      <div class="broker-info-col">
+        <div class="broker-pill-badge">
+          <span>⚡ Official Recommended Broker</span>
+        </div>
+        <h2 class="broker-title">Best Broker for Binary & Deriv Synthetic Indices</h2>
+        <p class="broker-desc">
+          Engineered to provide zero-slippage execution for our <strong>Boom & Crash Spike Hunters</strong>, <strong>Vol 75 / Vol 100</strong>, Step Index, and Binary options. Trade 24/7 all 365 days of the year with institutional liquidity and ultra-fast deposits & withdrawals.
+        </p>
+
+        <div class="broker-features-list">
+          <span class="broker-feature-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            24/7 Boom & Crash Indices
+          </span>
+          <span class="broker-feature-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Binary Options & Multipliers
+          </span>
+          <span class="broker-feature-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Zero Slippage Execution
+          </span>
+          <span class="broker-feature-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            MT5 Native Integration
+          </span>
+        </div>
+      </div>
+
+      <div class="broker-cta-col">
+        <a class="broker-register-btn" 
+           href="https://track.deriv.me/_JPGg-UNeLM71hit6RV3zsGNd7ZgqdRLk/1/" 
+           target="_blank" 
+           rel="noopener noreferrer">
+          <span>Create Free Deriv Account</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        </a>
+        <a class="broker-register-btn" 
+           href="live-analysis.html" 
+           style="margin-top: 0.65rem; background: rgba(0, 240, 255, 0.12); border: 1px solid var(--cyan-neon); color: #fff; box-shadow: 0 0 18px var(--cyan-glow);">
+          <span>📈 Open Live Analysis Terminal</span>
+        </a>
+        <span class="broker-subtext">Official Partner Link &bull; Instant Verified Setup</span>
+      </div>
+    </section>
+
+    <!-- OFFICIAL COMMUNITIES & SIGNAL CHANNELS SECTION -->
+    <section class="community-section" id="community-section" aria-label="Official Communities & Signals">
+      <div class="section-spatial-header">
+        <span class="section-tag">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Direct Social Network
+        </span>
+        <h2 class="section-heading">Official Signal Channels & Communities</h2>
+        <p class="section-lead">Join our official WhatsApp & Telegram channels for live trading setups, daily spike forecasts, tool updates, and 1-on-1 VIP support.</p>
+      </div>
+
+      <div class="community-cards-grid">
+        <!-- 1. WhatsApp Channel -->
+        <div class="community-card comm-card-wa">
+          <div>
+            <div class="comm-icon-box comm-icon-wa">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.998.546 1.763.818 2.796.818 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.769-5.768-5.769zm10.009 5.765c-.002 5.541-4.509 10.048-10.05 10.048-1.758 0-3.411-.462-4.856-1.272l-5.134 1.346 1.371-5.006c-.896-1.503-1.37-3.239-1.37-5.116.002-5.541 4.51-10.048 10.051-10.048 5.541 0 10.048 4.507 10.048 10.048z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Broadcast Updates</span>
+            <h3 class="comm-title">Official WhatsApp Channel</h3>
+            <p class="comm-desc">Daily institutional market breakdowns, new indicator releases, and live trading insights directly on WhatsApp.</p>
+          </div>
+          <a class="comm-join-btn" href="https://whatsapp.com/channel/0029Va7eoTo1nozCVt885t1M" target="_blank" rel="noopener noreferrer">
+            <span>Join WhatsApp Channel</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+
+        <!-- 2. WhatsApp Community -->
+        <div class="community-card comm-card-wa">
+          <div>
+            <div class="comm-icon-box comm-icon-wa">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.664-.698c.998.546 1.763.818 2.796.818 3.181 0 5.767-2.587 5.768-5.766.001-3.182-2.585-5.769-5.768-5.769zm10.009 5.765c-.002 5.541-4.509 10.048-10.05 10.048-1.758 0-3.411-.462-4.856-1.272l-5.134 1.346 1.371-5.006c-.896-1.503-1.37-3.239-1.37-5.116.002-5.541 4.51-10.048 10.051-10.048 5.541 0 10.048 4.507 10.048 10.048z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Interactive Community</span>
+            <h3 class="comm-title">Official WhatsApp Group</h3>
+            <p class="comm-desc">Connect with our active community of traders using SearchMixed tools for synthetics and forex trading.</p>
+          </div>
+          <a class="comm-join-btn" href="https://chat.whatsapp.com/Hbd0vChIC6h92pyUE3kEW4" target="_blank" rel="noopener noreferrer">
+            <span>Join WhatsApp Group</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+
+        <!-- 3. Telegram: Live Signals Pro -->
+        <div class="community-card comm-card-tg">
+          <div>
+            <div class="comm-icon-box comm-icon-tg">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.536-.196 1.006.128.832.941z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Signal Feed</span>
+            <h3 class="comm-title">Live Signals Pro</h3>
+            <p class="comm-desc">High-accuracy live signal alerts for Boom & Crash, Forex, and Gold with entry, stop loss, and multiple take profit targets.</p>
+          </div>
+          <a class="comm-join-btn" href="https://t.me/livesignalspro" target="_blank" rel="noopener noreferrer">
+            <span>Join Live Signals Pro</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+
+        <!-- 4. Telegram: Candlestick Chart Trading -->
+        <div class="community-card comm-card-tg">
+          <div>
+            <div class="comm-icon-box comm-icon-tg">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.536-.196 1.006.128.832.941z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Price Action Mastery</span>
+            <h3 class="comm-title">Candlestick Chart Trading</h3>
+            <p class="comm-desc">Educational setups, pattern recognition guides, SMC structures, and candlestick anatomy for consistent trading.</p>
+          </div>
+          <a class="comm-join-btn" href="https://t.me/candlestickcharttrading" target="_blank" rel="noopener noreferrer">
+            <span>Join Candlestick Channel</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+
+        <!-- 5. Telegram: Forex Brothers 786 -->
+        <div class="community-card comm-card-tg">
+          <div>
+            <div class="comm-icon-box comm-icon-tg">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.46c.536-.196 1.006.128.832.941z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Brotherhood Network</span>
+            <h3 class="comm-title">Forex Brothers 786</h3>
+            <p class="comm-desc">Specialized forex family community focusing on Gold (XAUUSD), major pairs, and daily market discussions.</p>
+          </div>
+          <a class="comm-join-btn" href="https://t.me/forexbrothers786" target="_blank" rel="noopener noreferrer">
+            <span>Join Forex Brothers 786</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+
+        <!-- 6. YouTube Channel: Traders Profit Club -->
+        <div class="community-card comm-card-yt">
+          <div>
+            <div class="comm-icon-box comm-icon-yt">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"></path>
+              </svg>
+            </div>
+            <span class="comm-type-pill">Official Video Channel</span>
+            <h3 class="comm-title">Traders Profit Club</h3>
+            <p class="comm-desc">Watch live video demonstrations, indicator setup walkthroughs, backtests, and spike catch tutorials on YouTube.</p>
+          </div>
+          <a class="comm-join-btn" href="https://www.youtube.com/@Tradersprofitclub" target="_blank" rel="noopener noreferrer">
+            <span>Subscribe on YouTube</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIP GROUP RESULTS & PROOF SHOWCASE SECTION -->
+    <section class="vip-results-deck" id="vip-section" aria-label="VIP Performance Results">
+      <div class="section-spatial-header">
+        <span class="section-tag" style="color: var(--violet-neon);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          VIP Group Performance & Proof
+        </span>
+        <h2 class="section-heading">Verified VIP Trading Results</h2>
+        <p class="section-lead">Real signals, real spikes caught, and verified profit proofs from our VIP member community.</p>
+      </div>
+
+      <!-- Preview VIP Proof Cards -->
+      <div class="vip-results-grid">
+        <div class="vip-proof-card">
+          <div class="proof-badge-row">
+            <span class="proof-type">Boom 300 / 1000 Spike</span>
+            <span class="proof-win-tag">+185 Pips</span>
+          </div>
+          <h4 class="proof-title">Deriv BC Blue Guardian Sniper</h4>
+          <p class="comm-desc">Clean zero-lag M5 reversal confirmation on Boom 300 with an exact 5-candle stop loss.</p>
+          <div class="proof-stats-deck">
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">1:4.8</span>
+              <span class="proof-stat-lbl">Risk/Reward</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">98.2%</span>
+              <span class="proof-stat-lbl">Confluence</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">Confirmed</span>
+              <span class="proof-stat-lbl">Non-Repaint</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vip-proof-card">
+          <div class="proof-badge-row">
+            <span class="proof-type">XAUUSD Gold Scalp</span>
+            <span class="proof-win-tag">+240 Pips</span>
+          </div>
+          <h4 class="proof-title">Scalp Gold God-Mode Signal</h4>
+          <p class="comm-desc">Multi-timeframe consensus alignment across M5 and H1 capturing the New York opening liquidity sweep.</p>
+          <div class="proof-stats-deck">
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">1:5.2</span>
+              <span class="proof-stat-lbl">Risk/Reward</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">M5/H1</span>
+              <span class="proof-stat-lbl">Alignment</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">Target 3</span>
+              <span class="proof-stat-lbl">Hit</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="vip-proof-card">
+          <div class="proof-badge-row">
+            <span class="proof-type">SMC Order Block</span>
+            <span class="proof-win-tag">+310 Pips</span>
+          </div>
+          <h4 class="proof-title">SMC Legends TPO Value Expansion</h4>
+          <p class="comm-desc">Institutional Fair Value Gap mitigation with Point of Control (POC) magnetic bounce.</p>
+          <div class="proof-stats-deck">
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">1:6.0</span>
+              <span class="proof-stat-lbl">Risk/Reward</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">TPO POC</span>
+              <span class="proof-stat-lbl">Key Level</span>
+            </div>
+            <div class="proof-stat-item">
+              <span class="proof-stat-num">100%</span>
+              <span class="proof-stat-lbl">Mitigated</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══ LIVE SIGNALS DASHBOARD CALLOUT ═══════════════════════════════ -->
+      <div class="vip-zip-callout" style="
+        background: linear-gradient(135deg, rgba(0,240,255,0.06) 0%, rgba(59,130,246,0.08) 100%);
+        border: 1px solid rgba(0,240,255,0.25);
+        margin-bottom: 1.25rem;">
+        <div style="font-size: 2rem;">📡</div>
+        <h3 class="vip-zip-title" style="color: #00f0ff;">
+          Live Market Signals Dashboard — EMA + RSI Engine
+        </h3>
+        <p class="vip-zip-text" style="max-width: 640px; margin: 0 auto;">
+          Real-time BUY/SELL signals for Deriv Synthetic Indices (Boom, Crash, Vol 75/100, Step, Jump) powered by a live WebSocket feed directly connected to the Deriv API server — with EMA(9/21) momentum confirmation and RSI(14) filtering. Includes entry price, take profit, stop loss, and an interactive pip/profit calculator.
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-top: 0.25rem;">
+          <a href="signals-dashboard.html"
+             style="
+              display: inline-flex; align-items: center; gap: 0.5rem;
+              padding: 0.75rem 1.75rem;
+              background: linear-gradient(135deg, #00f0ff 0%, #3b82f6 100%);
+              border: 1px solid rgba(255,255,255,0.4);
+              border-radius: 9999px;
+              color: #050e1f; font-weight: 800; font-size: 0.95rem;
+              text-decoration: none;
+              box-shadow: 0 0 30px rgba(0,240,255,0.35);
+              transition: all 0.25s;">
+            <span style="font-size:1rem;">📊</span>
+            Open Live Signals Dashboard
+          </a>
+          <a class="glow-btn btn-glow-whatsapp" href="https://wa.me/923121764052" target="_blank" rel="noopener noreferrer">
+            <span>Get VIP Alerts</span>
+          </a>
+        </div>
+        <div style="margin-top: 0.75rem; display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center;">
+          <span style="font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem;">
+            <span style="width:7px;height:7px;background:#10b981;border-radius:50%;box-shadow:0 0 8px #10b981;display:inline-block;animation:pulse 1.6s infinite;"></span>
+            19 Symbols Streaming
+          </span>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">⚡ Boom 1000/500/300 · Crash 1000/500/300</span>
+          <span style="font-size: 0.78rem; color: var(--text-muted);">📈 Vol 75/100 · Step · Jump 10/25/50/75/100</span>
+        </div>
+      </div>
+
+      <!-- ZIP FILE SHOWCASE CALLOUT -->
+      <div class="vip-zip-callout">
+        <div style="font-size: 2.2rem;">📦</div>
+        <h3 class="vip-zip-title">Ready for Your VIP Group Results ZIP File</h3>
+        <p class="vip-zip-text">
+          Want all your VIP trade screenshots, profit reports, and before/after charts published here in a high-res gallery? Simply share or drop your ZIP file into this project directory, and I will instantly unpack and build a full interactive VIP Results Proof Gallery with zoomable chart modals!
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+          <a class="glow-btn btn-glow-telegram" href="https://t.me/vixstartgy" target="_blank" rel="noopener noreferrer">
+            <span>Inquire About VIP Access (@vixstartgy)</span>
+          </a>
+          <a class="glow-btn btn-glow-whatsapp" href="https://wa.me/923121764052" target="_blank" rel="noopener noreferrer">
+            <span>WhatsApp VIP Admin</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPATIAL CONTROL & FILTER DECK -->
+    <section class="spatial-controls-card" id="catalog-section" aria-label="Tool Filters and Search">
+      
+      <!-- Top Row: Search & Sorting -->
+      <div class="controls-row-top">
+        <div class="spatial-search-box">
+          <span class="spatial-search-icon">🔍</span>
+          <input type="text" 
+                 id="spatial-search" 
+                 class="spatial-search-input" 
+                 placeholder="Search by tool name, strategy, SMC, Boom/Crash, Volume, XAUUSD... (Press '/' to focus)" 
+                 autocomplete="off" 
+                 spellcheck="false">
+          <button class="search-clear-btn" id="search-clear" aria-label="Clear search query">✕</button>
+        </div>
+
+        <div class="spatial-sort-group">
+          <label for="sort-select" class="sort-label">Sort By:</label>
+          <select id="sort-select" class="spatial-select">
+            <option value="featured">Featured / Best Match</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="nameAsc">Alphabetical (A - Z)</option>
+            <option value="rating">Most Popular / Rated</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Rows -->
+      <div class="controls-row-filters">
+        
+        <!-- Platform Switcher -->
+        <div class="filter-pills-row">
+          <span class="filter-row-title">Platform:</span>
+          <button class="filter-chip active" data-filter-platform="all">All Platforms</button>
+          <button class="filter-chip" data-filter-platform="5">MetaTrader 5 (MT5)</button>
+          <button class="filter-chip" data-filter-platform="4">MetaTrader 4 (MT4)</button>
+        </div>
+
+        <!-- Strategy Collections -->
+        <div class="filter-pills-row">
+          <span class="filter-row-title">Collections:</span>
+          <button class="filter-chip active" data-filter-collection="all">All Systems</button>
+          <button class="filter-chip" data-filter-collection="smc">SMC & ICT Architecture</button>
+          <button class="filter-chip" data-filter-collection="deriv">Boom & Crash / Synthetics</button>
+          <button class="filter-chip" data-filter-collection="volume">Volume Profile & Order Flow</button>
+          <button class="filter-chip" data-filter-collection="gold">Gold (XAUUSD) Precision</button>
+          <button class="filter-chip" data-filter-collection="free">Free Starter Tools</button>
+        </div>
+
+        <!-- Category & Price Filter -->
+        <div class="filter-pills-row">
+          <span class="filter-row-title">Category:</span>
+          <button class="filter-chip active" data-filter-category="all">All Types</button>
+          <button class="filter-chip" data-filter-category="2">Indicators</button>
+          <button class="filter-chip" data-filter-category="1">Expert Advisors (EAs)</button>
+          <button class="filter-chip" data-filter-category="7">Utilities & Scripts</button>
+
+          <span class="filter-row-title" style="margin-left: 1rem;">Price:</span>
+          <button class="filter-chip active" data-filter-price="all">Any Price</button>
+          <button class="filter-chip" data-filter-price="free">Free ($0)</button>
+          <button class="filter-chip" data-filter-price="under50">Under $50</button>
+          <button class="filter-chip" data-filter-price="50to100">$50 - $100</button>
+          <button class="filter-chip" data-filter-price="over100">$100+</button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Results Count -->
+    <div class="results-header-bar">
+      <div class="results-count-text">
+        Displaying <span class="results-count-number" id="results-count">--</span> tools matching spatial filters
+      </div>
+    </div>
+
+    <!-- Spatial 3D Products Grid -->
+    <main class="spatial-grid" id="spatial-products-grid" aria-live="polite">
+      <!-- Injected by app.js -->
+    </main>
+
+    <!-- Spatial Holographic Footer -->
+    <footer class="spatial-footer">
+      <div class="footer-seller-badge">
+        <img class="dock-avatar" src="https://c.mql5.com/avatar/2026/3/69b14bc7-0aa6_big.jpg" alt="Israr Hussain Shah">
+        <span class="footer-seller-name">Israr Hussain Shah (SearchMixed)</span>
+        <span class="platform-badge mt5">Verified Seller</span>
+      </div>
+
+      <div class="footer-links-row">
+        <a class="footer-link" href="index.html">All Systems & Tools</a>
+        <a class="footer-link" href="live-analysis.html" style="color: var(--cyan-neon); font-weight: 700;">📈 Live Analysis Terminal</a>
+		        <a class="footer-link" href="deriv-terminal.html" style="color: var(--cyan-neon); font-weight: 700;">⚡ Deriv Terminal</a>
+        <a class="footer-link" href="https://www.mql5.com/en/users/searchmixed/seller" target="_blank" rel="noopener noreferrer">Official MQL5 Seller Profile</a>
+        <a class="footer-link" href="https://track.deriv.me/_JPGg-UNeLM71hit6RV3zsGNd7ZgqdRLk/1/" target="_blank" rel="noopener noreferrer">Best Broker (Deriv)</a>
+        <a class="footer-link" href="https://wa.me/923121764052" target="_blank" rel="noopener noreferrer">WhatsApp: +92 312 1764052</a>
+        <a class="footer-link" href="https://t.me/vixstartgy" target="_blank" rel="noopener noreferrer">Telegram: @vixstartgy</a>
+        <a class="footer-link" href="mailto:shahisrar381@yahoo.com">Email: shahisrar381@yahoo.com</a>
+        <a class="footer-link" href="https://www.youtube.com/@Tradersprofitclub" target="_blank" rel="noopener noreferrer">YouTube: Traders Profit Club</a>
+      </div>
+
+      <p class="footer-copyright">
+        &copy; 2026 SearchMixed // All MetaTrader 4 & 5 tools, logos, and descriptions belong to Israr Hussain Shah. Purchases process securely through the official MetaQuotes MQL5 Market.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Spatial Inspection 3D Modal Window -->
+  <div class="spatial-modal-backdrop" id="spatial-modal" role="dialog" aria-modal="true" aria-label="Tool Details">
+    <div class="spatial-modal-window">
+      <button class="modal-close-btn" id="modal-close" aria-label="Close modal window">✕</button>
+      <div id="modal-body">
+        <!-- Injected by app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Spatial Notification Toast -->
+  <div class="spatial-toast" id="spatial-toast">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan-neon)" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <span id="toast-text">Notification</span>
+  </div>
+
+  <!-- Products Dataset & Application Script -->
+  <script src="products.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
