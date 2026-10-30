@@ -1921,9 +1921,6 @@ body {
     padding: 1.25rem 1.25rem;
   }
   
-  .dock-links {
-    display: none;
-  }
 
   .spatial-modal-window {
     padding: 2rem 1.5rem;
@@ -2039,4 +2036,143 @@ body {
     box-shadow: 0 0 12px var(--cyan-neon);
   }
 }
+/* ============================================================
+   MOBILE MENU TOGGLE & DROPDOWN (auto-adaptive)
+   ============================================================ */
 
+.mobile-menu-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-surface);
+  color: var(--text-secondary);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  flex-shrink: 0;
+}
+
+.mobile-menu-toggle:hover {
+  color: var(--cyan-neon);
+  border-color: var(--cyan-neon);
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.mobile-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 4, 10, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-menu-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+@media (max-width: 900px) {
+  .mobile-menu-toggle {
+    display: inline-flex;
+    order: -1;
+  }
+
+  .spatial-nav-container {
+    top: 0.75rem;
+    padding: 0 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .spatial-dock {
+    padding: 0.5rem 0.85rem;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+    max-width: 100%;
+  }
+
+  .dock-brand-text { display: none; }
+  .dock-brand {
+    padding-right: 0.35rem;
+    border-right: none;
+  }
+  .dock-avatar {
+    width: 30px;
+    height: 30px;
+  }
+
+  .dock-links {
+    position: fixed;
+    top: 80px;
+    left: 1rem;
+    right: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+    background: rgba(12, 16, 32, 0.98);
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 1px solid var(--glass-border-hover);
+    border-radius: var(--radius-md);
+    padding: 0.85rem;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.85), inset 0 1px 1px var(--glass-border-specular);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-15px) scale(0.98);
+    pointer-events: none;
+    transition: all 0.3s var(--ease-spring);
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    z-index: 999;
+  }
+
+  .dock-links.mobile-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .dock-links li { width: 100%; }
+
+  .dock-links .dock-btn {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .dock-actions {
+    padding-left: 0.35rem;
+    gap: 0.35rem;
+    border-left: none;
+  }
+
+  .mql5-profile-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+  .mql5-profile-btn span { display: none; }
+}
+
+@media (max-width: 480px) {
+  .dock-avatar { width: 26px; height: 26px; }
+  .audio-toggle-btn,
+  .mobile-menu-toggle,
+  .mql5-profile-btn { width: 32px; height: 32px; }
+  .dock-links {
+    top: 70px;
+    left: 0.5rem;
+    right: 0.5rem;
+  }
+}

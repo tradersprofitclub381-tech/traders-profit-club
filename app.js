@@ -764,9 +764,46 @@
       elements.modalBackdrop.addEventListener("click", (e) => {
         if (e.target === elements.modalBackdrop) {
           closeModal();
+		  
         }
       });
     }
+	
+    // ===== MOBILE MENU =====
+    const mobileToggle = document.getElementById("mobile-menu-toggle");
+    const mobileBackdrop = document.getElementById("mobile-menu-backdrop");
+    const dockLinks = document.getElementById("spatial-dock-links");
+
+    function closeMobileMenu() {
+      if (!dockLinks) return;
+      dockLinks.classList.remove("mobile-open");
+      mobileBackdrop?.classList.remove("active");
+      mobileToggle?.setAttribute("aria-expanded", "false");
+    }
+
+    if (mobileToggle && dockLinks) {
+      mobileToggle.addEventListener("click", () => {
+        const isOpen = dockLinks.classList.toggle("mobile-open");
+        mobileBackdrop?.classList.toggle("active", isOpen);
+        mobileToggle.setAttribute("aria-expanded", String(isOpen));
+      });
+    }
+
+    if (mobileBackdrop) {
+      mobileBackdrop.addEventListener("click", closeMobileMenu);
+    }
+
+    dockLinks?.querySelectorAll(".dock-btn").forEach((btn) => {
+      btn.addEventListener("click", closeMobileMenu);
+    });
+
+    let mobileResizeTimer = null;
+    window.addEventListener("resize", () => {
+      if (mobileResizeTimer) clearTimeout(mobileResizeTimer);
+      mobileResizeTimer = setTimeout(() => {
+        if (window.innerWidth > 900) closeMobileMenu();
+      }, 120);
+    });
   }
 
   function resetFilters() {
