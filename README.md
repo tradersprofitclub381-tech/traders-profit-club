@@ -120,3 +120,33 @@ A full-featured real-time Deriv analysis terminal with:
 ### Access
 - Root URL → click "Deriv Terminal" in the top nav, or
 - Direct: `YOUR-USERNAME.github.io/REPO-NAME/deriv-terminal.html`
+---
+
+## 🔢 LDP Analyzer (`ldp-analyzer.html`)
+
+A Last Digit Prediction statistical analyzer for all Deriv synthetic indices that support digit contracts.
+
+### Features
+- **Digit frequency heatmap** — percentages and counts for digits 0–9
+- **Rolling sample windows** — 100, 200, 500, or 1000 ticks
+- **Hot / cold highlighting** — most and least frequent digits
+- **Even / Odd split** — real-time parity percentages
+- **Under 5 / Over 4 split** — digit bucket percentages
+- **Streak tracking** — consecutive same digits, consecutive parity runs
+- **Average jump** — mean absolute digit-to-digit change (volatility indicator)
+- **Regime detection** — Tight (clustered) / Normal / Wide (chaotic)
+- **χ² (chi-squared) test** — statistical predictability score with 16.92 critical threshold
+- **Best DIFFER digit** — the rarest digit, statistically safest to bet against
+- **Hottest MATCH digit** — the most frequent digit
+
+### Supported Symbols
+Volatility 10/25/50/75/100, all 1-second volatility indices, Jump 10/25/50/75/100, Step Index, Range Break 100/200.
+
+### Access
+- Root URL → click **LDP Analyzer** in the top nav, or
+- Direct: `YOUR-USERNAME.github.io/REPO-NAME/ldp-analyzer.html`
+
+### How it works
+The page connects to Deriv's public WebSocket (`api.derivws.com`), subscribes to `ticks` for the selected symbol, 
+and extracts the last digit from each tick's `quote` field.
+ All statistics are computed locally in the browser from the rolling tick buffer — no data is sent anywhere.
