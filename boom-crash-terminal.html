@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>MetaTrader 5 · Boom &amp; Crash Sniper Terminal</title>
+<style>
+  :root {
+    --mt5-bg: #1e222d;
+    --mt5-chart-bg: #131722;
+    --mt5-panel: #181a20;
+    --mt5-toolbar: #20242e;
+    --mt5-border: #2c3240;
+    --mt5-text: #d1d4dc;
+    --mt5-muted: #787b86;
+    --mt5-bull: #00ff7f;
+    --mt5-bear: #ef4444;
+    --mt5-accent: #2962ff;
+    --gold: #f5a623;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--mt5-bg);
+    color: var(--mt5-text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* TOP WINDOW TITLE & NAV BAR */
+  .mt5-titlebar {
+    min-height: 28px;
+    background: #111318;
+    border-bottom: 1px solid #222633;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--mt5-muted);
+    flex-shrink: 0;
+    gap: 8px;
+  }
+  .mt5-menu-items {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+  }
+  .mt5-menu-items::-webkit-scrollbar { display: none; }
+  .mt5-menu-item { color: var(--mt5-text); cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+  .mt5-menu-item:hover { color: #fff; }
+
+  .mt5-nav-store {
+    color: var(--gold);
+    font-weight: 700;
+    text-decoration: none;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: rgba(245, 166, 35, 0.15);
+    border: 1px solid rgba(245, 166, 35, 0.35);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .mt5-nav-store:hover { background: rgba(245, 166, 35, 0.3); color: #fff; }
+
+  .mt5-nav-link {
+    color: var(--mt5-text);
+    text-decoration: none;
+    padding: 2px 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color 0.15s;
+  }
+  .mt5-nav-link:hover { color: #fff; }
+  .mt5-nav-link.mt5-nav-active {
+    color: var(--mt5-bull);
+    font-weight: 700;
+    background: rgba(0, 255, 127, 0.12);
+    border: 1px solid rgba(0, 255, 127, 0.35);
+    border-radius: 3px;
+    padding: 2px 8px;
+  }
+
+  .mt5-nav-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--mt5-border);
+    flex-shrink: 0;
+  }
+
+  .mt5-titlebar-right { font-size: 10px; white-space: nowrap; }
+
+  /* MT5 ICON TOOLBAR */
+  .mt5-toolbar {
+    min-height: 38px;
+    background: var(--mt5-toolbar);
+    border-bottom: 1px solid var(--mt5-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    gap: 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .mt5-toolbar::-webkit-scrollbar { display: none; }
+  .toolbar-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .tool-sep { width: 1px; height: 18px; background: var(--mt5-border); margin: 0 4px; }
+
+  .tf-pill {
+    padding: 4px 8px;
+    border-radius: 3px;
+    background: #2a2e39;
+    border: 1px solid var(--mt5-border);
+    color: var(--mt5-text);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .tf-pill:hover { border-color: var(--mt5-accent); color: #fff; }
+  .tf-pill.active { background: var(--mt5-accent); border-color: var(--mt5-accent); color: #fff; }
+
+  .status-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 3px;
+    background: #131722; border: 1px solid var(--mt5-border);
+    font-size: 11px; font-family: monospace;
+    flex-shrink: 0;
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #ef4444; }
+  .status-dot.live { background: var(--mt5-bull); box-shadow: 0 0 6px var(--mt5-bull); }
+
+  .mobile-mw-toggle {
+    display: none;
+    padding: 3px 10px;
+    background: var(--mt5-accent);
+    border: 1px solid var(--mt5-accent);
+    border-radius: 3px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* WORKSPACE BODY */
+  .mt5-workspace {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
+  }
+
+  /* LEFT PANEL: MARKET WATCH */
+  .market-watch-panel {
+    width: 260px;
+    background: var(--mt5-panel);
+    border-right: 1px solid var(--mt5-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+  .mw-head {
+    padding: 6px 10px;
+    background: #1c202a;
+    border-bottom: 1px solid var(--mt5-border);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .mw-search {
+    padding: 6px 8px;
+    background: #11141c;
+    border-bottom: 1px solid var(--mt5-border);
+    flex-shrink: 0;
+  }
+  .mw-search input {
+    width: 100%;
+    background: #1c202a;
+    border: 1px solid var(--mt5-border);
+    border-radius: 3px;
+    color: #fff;
+    padding: 4px 6px;
+    font-size: 11px;
+    outline: none;
+  }
+  .mw-search input:focus { border-color: var(--mt5-accent); }
+
+  .mw-symbols-list {
+    flex: 1;
+    overflow-y: auto;
+    list-style: none;
+  }
+  .mw-symbol-row {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .mw-symbol-row:hover { background: #232733; }
+  .mw-symbol-row.active {
+    background: rgba(41, 98, 255, 0.2);
+    border-left: 3px solid var(--mt5-accent);
+  }
+  .mw-sym-name { font-weight: 700; color: #fff; display: flex; align-items: center; gap: 4px; }
+  .mw-sym-bid { font-family: monospace; font-size: 11px; }
+  .mw-lock { font-size: 10px; color: var(--gold); }
+  .mw-tag {
+    font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: 700;
+  }
+  .mw-tag.free { background: rgba(0, 255, 127, 0.15); color: var(--mt5-bull); }
+  .mw-tag.vip { background: rgba(245, 166, 35, 0.15); color: var(--gold); }
+
+  /* MAIN CHART VIEWPORT */
+  .chart-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--mt5-chart-bg);
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .chart-info-banner {
+    height: 32px;
+    background: rgba(24, 26, 32, 0.9);
+    border-bottom: 1px solid var(--mt5-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    font-size: 11px;
+    font-family: monospace;
+    z-index: 10;
+    flex-shrink: 0;
+  }
+  .chart-sym-title { color: #fff; font-weight: 700; }
+  .chart-ohlc { color: var(--mt5-muted); display: flex; gap: 10px; }
+  .chart-ohlc b { color: #fff; }
+
+  #chartWrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    min-height: 0;
+    touch-action: none;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* BOTTOM DOCK: MT5 TERMINAL TABS */
+  .mt5-bottom-dock {
+    height: 80px;
+    background: var(--mt5-panel);
+    border-top: 1px solid var(--mt5-border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .terminal-tabs {
+    height: 24px;
+    background: #14161d;
+    border-bottom: 1px solid var(--mt5-border);
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+  .term-tab {
+    padding: 3px 10px;
+    font-size: 10px;
+    color: var(--mt5-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .term-tab.active {
+    color: #fff;
+    font-weight: 700;
+    border-bottom-color: var(--mt5-accent);
+    background: var(--mt5-panel);
+  }
+  .terminal-logs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 12px;
+    font-family: monospace;
+    font-size: 11px;
+    color: var(--mt5-muted);
+  }
+  .log-line { margin-bottom: 3px; display: flex; gap: 8px; }
+  .log-time { color: #555c6d; }
+  .log-sig { color: var(--mt5-bull); font-weight: 700; }
+  .log-sig.sell { color: var(--mt5-bear); }
+
+  /* VIP POPUP MODAL */
+  .vip-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .vip-overlay.show { display: flex; }
+  .vip-card {
+    background: #1a1e28;
+    border: 1px solid var(--gold);
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 166, 35, 0.2);
+    position: relative;
+  }
+  .vip-close {
+    position: absolute; top: 10px; right: 12px;
+    background: none; border: none; color: var(--mt5-muted);
+    font-size: 16px; cursor: pointer;
+  }
+  .vip-icon { font-size: 34px; margin-bottom: 10px; }
+  .vip-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+  .vip-desc { font-size: 12px; line-height: 1.6; color: var(--mt5-muted); margin-bottom: 16px; }
+  .vip-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 10px; border-radius: 6px;
+    background: linear-gradient(135deg, #0088cc 0%, #00b4d8 100%);
+    color: #fff; font-weight: 700; font-size: 13px; text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 0 15px rgba(0, 136, 204, 0.4);
+    transition: transform 0.2s;
+  }
+  .vip-btn:hover { transform: translateY(-2px); }
+
+  /* RESPONSIVE (TABLET + MOBILE) */
+  @media (max-width: 1024px) {
+    .market-watch-panel { width: 220px; }
+  }
+
+  @media (max-width: 768px) {
+    .mobile-mw-toggle { display: inline-flex; }
+    .mt5-titlebar-right { display: none; }
+    .mt5-menu-item { display: none; }
+    .mt5-nav-sep { display: none; }
+    .mt5-titlebar { padding: 4px 6px; }
+    .mt5-toolbar { padding: 4px 6px; gap: 6px; }
+    .tf-pill { padding: 3px 6px; font-size: 10px; }
+    .chart-ohlc { display: none; }
+
+    .market-watch-panel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 260px;
+      z-index: 200;
+      transform: translateX(-100%);
+      box-shadow: 4px 0 30px rgba(0, 0, 0, 0.7);
+    }
+    .market-watch-panel.open {
+      transform: translateX(0);
+    }
+
+    .mt5-bottom-dock { height: 70px; }
+    .terminal-logs { padding: 4px 10px; font-size: 10px; }
+  }
+
+  @media (max-width: 480px) {
+    .mt5-titlebar { padding: 3px 6px; font-size: 10px; }
+    .mt5-menu-items { gap: 8px; }
+    .chart-info-banner { padding: 0 8px; font-size: 10px; }
+    .mt5-bottom-dock { height: 60px; }
+    .terminal-tabs { height: 20px; }
+    .term-tab { font-size: 9px; padding: 2px 8px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Title bar with navigation links -->
+  <div class="mt5-titlebar">
+    <div class="mt5-menu-items">
+      <a href="index.html" class="mt5-nav-store">← Store</a>
+      <a href="live-analysis.html" class="mt5-nav-link">Live Analysis</a>
+      <a href="deriv-terminal.html" class="mt5-nav-link">Deriv</a>
+      <a href="ldp-analyzer.html" class="mt5-nav-link">LDP</a>
+      <a href="boom-crash-terminal.html" class="mt5-nav-link mt5-nav-active">Boom/Crash</a>
+      <div class="mt5-nav-sep"></div>
+      <span class="mt5-menu-item">File</span>
+      <span class="mt5-menu-item">View</span>
+      <span class="mt5-menu-item">Insert</span>
+      <span class="mt5-menu-item">Charts</span>
+      <span class="mt5-menu-item">Tools</span>
+      <span class="mt5-menu-item">Window</span>
+      <span class="mt5-menu-item">Help</span>
+    </div>
+    <div class="mt5-titlebar-right">MetaTrader 5 · Deriv Live Stream</div>
+  </div>
+
+  <!-- MT5 Icon Toolbar -->
+  <div class="mt5-toolbar">
+    <div class="toolbar-group">
+      <button class="mobile-mw-toggle" id="mobileMwToggle">☰ Markets</button>
+      <span style="font-weight: 800; color: #fff; font-size: 12px; margin-right: 6px;">MT5 PRO</span>
+      <div class="tool-sep"></div>
+      <button class="tf-pill active" data-tf="60">M1</button>
+      <button class="tf-pill" data-tf="300">M5</button>
+      <button class="tf-pill" data-tf="900">M15</button>
+      <button class="tf-pill" data-tf="1800">M30</button>
+      <button class="tf-pill" data-tf="3600">H1</button>
+      <button class="tf-pill" data-tf="14400">H4</button>
+    </div>
+
+    <div class="toolbar-group">
+      <div class="status-tag">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusLabel">Connecting...</span>
+      </div>
+      <a href="https://t.me/vixstartgy" target="_blank" rel="noopener noreferrer" class="tf-pill" style="background:#0088cc; border-color:#0088cc; color:#fff;">Telegram: @vixstartgy</a>
+    </div>
+  </div>
+
+  <!-- Workspace -->
+  <div class="mt5-workspace">
+    <!-- Left: Market Watch -->
+    <aside class="market-watch-panel" id="marketWatchPanel">
+      <div class="mw-head">
+        <span>Market Watch: Symbols</span>
+        <span style="color:var(--mt5-muted); font-size: 10px;">4 Free / 6 VIP</span>
+      </div>
+      <div class="mw-search">
+        <input type="text" id="symFilter" placeholder="Filter symbol (e.g. 500, 300)...">
+      </div>
+      <ul class="mw-symbols-list" id="symbolsList"></ul>
+    </aside>
+
+    <!-- Main Chart -->
+    <main class="chart-area">
+      <div class="chart-info-banner">
+        <div>
+          <span class="chart-sym-title" id="activeSymCode">BOOM 500 INDEX</span>
+          <span style="color:var(--mt5-accent); margin-left: 6px;" id="activeTfLabel">M1</span>
+        </div>
+        <div class="chart-ohlc">
+          <span>O: <b id="barO">-</b></span>
+          <span>H: <b id="barH">-</b></span>
+          <span>L: <b id="barL">-</b></span>
+          <span>C: <b id="barC">-</b></span>
+        </div>
+      </div>
+
+      <div id="chartWrapper">
+        <canvas id="mt5Canvas"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <!-- Bottom Dock: MT5 Terminal Toolbox -->
+  <footer class="mt5-bottom-dock">
+    <div class="terminal-tabs">
+      <div class="term-tab active">Trade Signals</div>
+      <div class="term-tab">Experts</div>
+      <div class="term-tab">Journal</div>
+    </div>
+    <div class="terminal-logs" id="terminalLogs">
+      <div class="log-line">
+        <span class="log-time">[System]</span>
+        <span>Initializing MetaTrader 5 charting engine with 1000 historical bars...</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- VIP Gateway Modal -->
+  <div class="vip-overlay" id="vipModal">
+    <div class="vip-card">
+      <button class="vip-close" onclick="closeVipModal()">✕</button>
+      <div class="vip-icon">🔒</div>
+      <div class="vip-title">VIP Indicator Gateway</div>
+      <div class="vip-desc" id="vipPromptText">
+        This asset is an exclusive VIP contract. Contact the owner on Telegram to get full VIP access.
+      </div>
+      <a href="https://t.me/vixstartgy" target="_blank" rel="noopener noreferrer" class="vip-btn">
+        <span>Contact Owner (@vixstartgy)</span>
+      </a>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+   SYMBOLS ACCESS CONFIGURATION
+   FREE (Unlocked): BOOM 300, BOOM 500, CRASH 300, CRASH 500
+   PAID / VIP (Locked): BOOM 600, BOOM 900, BOOM 1000, CRASH 600, CRASH 900, CRASH 1000
+   ============================================================ */
+const BOOM_CRASH_CATALOG = [
+  // FREE UNLOCKED
+  { symbol: 'BOOM300',   name: 'Boom 300 Index',   type: 'boom',  locked: false, base: 2100 },
+  { symbol: 'BOOM500',   name: 'Boom 500 Index',   type: 'boom',  locked: false, base: 4500 },
+  { symbol: 'CRASH300',  name: 'Crash 300 Index',  type: 'crash', locked: false, base: 1900 },
+  { symbol: 'CRASH500',  name: 'Crash 500 Index',  type: 'crash', locked: false, base: 4200 },
+
+  // PAID VIP LOCKED
+  { symbol: 'BOOM600',   name: 'Boom 600 Index',   type: 'boom',  locked: true,  base: 5200 },
+  { symbol: 'BOOM900',   name: 'Boom 900 Index',   type: 'boom',  locked: true,  base: 7800 },
+  { symbol: 'BOOM1000',  name: 'Boom 1000 Index',  type: 'boom',  locked: true,  base: 11200 },
+  { symbol: 'CRASH600',  name: 'Crash 600 Index',  type: 'crash', locked: true,  base: 5100 },
+  { symbol: 'CRASH900',  name: 'Crash 900 Index',  type: 'crash', locked: true,  base: 7600 },
+  { symbol: 'CRASH1000', name: 'Crash 1000 Index', type: 'crash', locked: true,  base: 9800 }
+];
+
+/* 1000 historical bars (per requirement) */
+const HISTORICAL_BARS = 1000;
+
+// Terminal State
+let ws = null;
+let currentSymbol = 'BOOM500';
+let currentGranularity = 60; // M1
+let candleHistory = [];
+let signalEvents = [];
+
+// Canvas State
+const canvas = document.getElementById('mt5Canvas');
+const ctx = canvas.getContext('2d');
+let zoom = 8.0;                 // Zoom 8 shows ~125 bars of the 1000 loaded
+let panX = 0;
+let isDragging = false;
+let dragStartX = 0;
+
+/* ============================================================
+   BACKGROUND STRATEGY ENGINE (STATE-MACHINE: NO SPAM)
+   RSI(2) 95/05 Extreme + EMA(70) Trend Alignment
+   ============================================================ */
+function calculateEMA(values, period) {
+  const ema = new Array(values.length).fill(null);
+  if (values.length < period) return ema;
+  const k = 2 / (period + 1);
+  let sum = 0;
+  for (let i = 0; i < period; i++) sum += values[i];
+  ema[period - 1] = sum / period;
+  for (let i = period; i < values.length; i++) {
+    ema[i] = values[i] * k + ema[i - 1] * (1 - k);
+  }
+  return ema;
+}
+
+function calculateRSI(closes, period = 2) {
+  const rsi = new Array(closes.length).fill(null);
+  if (closes.length < period + 1) return rsi;
+  let gains = 0, losses = 0;
+  for (let i = 1; i <= period; i++) {
+    const diff = closes[i] - closes[i - 1];
+    if (diff >= 0) gains += diff; else losses -= diff;
+  }
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+  rsi[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+
+  for (let i = period + 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
+    avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+    rsi[i] = avgLoss === 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+  }
+  return rsi;
+}
+
+function scanBackgroundSignals() {
+  signalEvents = [];
+  if (candleHistory.length < 75) return;
+
+  const closes = candleHistory.map(c => c.close);
+  const ema70 = calculateEMA(closes, 70);
+  const rsi2 = calculateRSI(closes, 2);
+
+  const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === currentSymbol);
+  if (!symConfig || symConfig.locked) return;
+
+  // State-machine flags prevent consecutive signals in a single drop
+  let armedForBuy = true;
+  let armedForSell = true;
+  let lastSignalIndex = -999;
+
+  for (let i = 71; i < candleHistory.length; i++) {
+    const price = closes[i];
+    const trend = ema70[i];
+    const osc = rsi2[i];
+
+    if (trend === null || osc === null) continue;
+
+    // Re-arm gates only after RSI recovers (Boom: up past 20, Crash: down below 80)
+    if (osc > 20) armedForBuy = true;
+    if (osc < 80) armedForSell = true;
+
+    // BOOM: BUY NOW (only first entry into oversold, min 8 candles apart)
+    if (symConfig.type === 'boom' && armedForBuy && price > trend && osc <= 5.0) {
+      if ((i - lastSignalIndex) >= 8) {
+        signalEvents.push({
+          index: i,
+          type: 'BUY NOW',
+          price: candleHistory[i].low,
+          epoch: candleHistory[i].epoch
+        });
+        lastSignalIndex = i;
+        armedForBuy = false;
+      }
+    }
+
+    // CRASH: SELL NOW (only first entry into overbought, min 8 candles apart)
+    if (symConfig.type === 'crash' && armedForSell && price < trend && osc >= 95.0) {
+      if ((i - lastSignalIndex) >= 8) {
+        signalEvents.push({
+          index: i,
+          type: 'SELL NOW',
+          price: candleHistory[i].high,
+          epoch: candleHistory[i].epoch
+        });
+        lastSignalIndex = i;
+        armedForSell = false;
+      }
+    }
+  }
+
+  updateTerminalLogs();
+}
+
+function updateTerminalLogs() {
+  const terminal = document.getElementById('terminalLogs');
+  terminal.innerHTML = '';
+  if (!signalEvents.length) {
+    terminal.innerHTML = `<div class="log-line"><span class="log-time">[System]</span><span>Scanning ${currentSymbol} (${HISTORICAL_BARS} bars) for institutional confluence...</span></div>`;
+    return;
+  }
+  signalEvents.slice(-6).reverse().forEach(sig => {
+    const isBuy = sig.type === 'BUY NOW';
+    const dateStr = new Date(sig.epoch * 1000).toLocaleTimeString();
+    const div = document.createElement('div');
+    div.className = 'log-line';
+    div.innerHTML = `
+      <span class="log-time">[${dateStr}]</span>
+      <span class="log-sig ${isBuy ? '' : 'sell'}">${sig.type}</span>
+      <span>at ${sig.price.toFixed(2)} on candle #${sig.index}</span>
+    `;
+    terminal.appendChild(div);
+  });
+}
+
+/* ============================================================
+   DERIV WEBSOCKET MARKET DATA LINK
+   ============================================================ */
+function connectWebSocket() {
+  if (ws) { try { ws.close(); } catch(e){} }
+
+  const endpoint = 'wss://api.derivws.com/trading/v1/options/ws/public';
+  document.getElementById('statusLabel').innerText = 'Connecting...';
+  document.getElementById('statusDot').className = 'status-dot';
+
+  try { ws = new WebSocket(endpoint); }
+  catch(err) { initLocalSimulation(); return; }
+
+  ws.onopen = () => {
+    document.getElementById('statusLabel').innerText = 'Connected (MT5 Live)';
+    document.getElementById('statusDot').className = 'status-dot live';
+    requestCandles(currentSymbol, currentGranularity);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.msg_type === 'candles') {
+        candleHistory = (data.candles || []).map(c => ({
+          epoch: c.epoch,
+          open: parseFloat(c.open),
+          high: parseFloat(c.high),
+          low: parseFloat(c.low),
+          close: parseFloat(c.close)
+        }));
+        scanBackgroundSignals();
+        resetViewToLatest();      /* pan so latest bars are visible */
+      }
+      else if (data.msg_type === 'ohlc') {
+        const c = data.ohlc;
+        if (c.symbol === currentSymbol && candleHistory.length > 0) {
+          const last = candleHistory[candleHistory.length - 1];
+          const candle = {
+            epoch: c.open_time,
+            open: parseFloat(c.open),
+            high: parseFloat(c.high),
+            low: parseFloat(c.low),
+            close: parseFloat(c.close)
+          };
+          if (last.epoch === candle.epoch) {
+            candleHistory[candleHistory.length - 1] = candle;
+          } else {
+            candleHistory.push(candle);
+            if (candleHistory.length > HISTORICAL_BARS) candleHistory.shift();
+          }
+          scanBackgroundSignals();
+          renderMT5Chart();
+          updateBidQuote(c.symbol, candle.close);
+        }
+      }
+    } catch(err){}
+  };
+
+  ws.onerror = () => {
+    document.getElementById('statusLabel').innerText = 'Offline Simulation';
+    initLocalSimulation();
+  };
+}
+
+function requestCandles(symbol, granularity) {
+  const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === symbol);
+  document.getElementById('activeSymCode').innerText = symConfig.name.toUpperCase();
+  document.getElementById('activeTfLabel').innerText = getTfName(granularity);
+
+  if (symConfig.locked) { showVipModal(symConfig.name); return; }
+
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ forget_all: ['candles', 'ohlc'] }));
+    ws.send(JSON.stringify({
+      ticks_history: symbol,
+      count: HISTORICAL_BARS,
+      end: 'latest',
+      granularity: granularity,
+      style: 'candles',
+      subscribe: 1
+    }));
+  } else {
+    initLocalSimulation();
+  }
+}
+
+function initLocalSimulation() {
+  const symConfig = BOOM_CRASH_CATALOG.find(s => s.symbol === currentSymbol) || BOOM_CRASH_CATALOG[0];
+  let base = symConfig.base;
+  let time = Math.floor(Date.now() / 1000) - HISTORICAL_BARS * currentGranularity;
+
+  candleHistory = [];
+  for (let i = 0; i < HISTORICAL_BARS; i++) {
+    const isSpike = Math.random() < 0.08;
+    let shift = symConfig.type === 'boom' ? -0.8 : 0.8;
+    if (isSpike) {
+      shift = symConfig.type === 'boom' ? Math.random() * 35 + 20 : -(Math.random() * 35 + 20);
+    }
+    const open = base;
+    const close = base + shift;
+    const high = Math.max(open, close) + Math.random() * 0.5;
+    const low = Math.min(open, close) - Math.random() * 0.5;
+    candleHistory.push({ epoch: time, open, high, low, close });
+    base = close;
+    time += currentGranularity;
+  }
+  scanBackgroundSignals();
+  resetViewToLatest();
+}
+
+/* ============================================================
+   CANVAS RENDERING ENGINE (AUTHENTIC MT5 DARK CHART STYLE)
+   ============================================================ */
+function resetViewToLatest() {
+  const chartW = (canvas.parentElement.clientWidth || 800) - 70;
+  if (candleHistory.length === 0 || chartW <= 0) { renderMT5Chart(); return; }
+  const step = (chartW / candleHistory.length) * zoom;
+  panX = chartW - (candleHistory.length - 1) * step - step / 2;
+  renderMT5Chart();
+}
+
+function renderMT5Chart() {
+  const wrapEl = canvas.parentElement;
+  const w = wrapEl ? wrapEl.clientWidth : 0;
+  const h = wrapEl ? wrapEl.clientHeight : 0;
+  if (w <= 0 || h <= 0) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = Math.round(w * dpr);
+  canvas.height = Math.round(h * dpr);
+  /* FIX: reset transform on every render (original ctx.scale accumulated) */
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  ctx.fillStyle = '#131722';
+  ctx.fillRect(0, 0, w, h);
+
+  if (!candleHistory.length) return;
+
+  let minP = Infinity, maxP = -Infinity;
+  candleHistory.forEach(c => {
+    if (c.low < minP) minP = c.low;
+    if (c.high > maxP) maxP = c.high;
+  });
+
+  const pad = (maxP - minP) * 0.1 || 1;
+  minP -= pad;
+  maxP += pad;
+
+  const chartW = w - 70;
+  const chartH = h - 25;
+  const getY = val => chartH - ((val - minP) / (maxP - minP)) * chartH;
+  const step = (chartW / candleHistory.length) * zoom;
+  const bodyW = Math.max(1.5, step * 0.65);
+
+  /* Gridlines */
+  ctx.strokeStyle = '#1e2330';
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px monospace';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 6; i++) {
+    const p = minP + ((maxP - minP) / 6) * i;
+    const y = getY(p);
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(chartW, y);
+    ctx.stroke();
+    ctx.fillText(p.toFixed(2), chartW + 6, y + 3);
+  }
+
+  /* Candles */
+  candleHistory.forEach((c, i) => {
+    const x = panX + i * step + step / 2;
+    if (x < -20 || x > chartW + 20) return;
+
+    const isBull = c.close >= c.open;
+    const yOpen = getY(c.open);
+    const yClose = getY(c.close);
+    const yHigh = getY(c.high);
+    const yLow = getY(c.low);
+
+    ctx.strokeStyle = isBull ? '#00ff7f' : '#cbd5e1';
+    ctx.beginPath();
+    ctx.moveTo(x, yHigh);
+    ctx.lineTo(x, yLow);
+    ctx.stroke();
+
+    if (isBull) {
+      ctx.fillStyle = '#00ff7f';
+      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(1, Math.abs(yClose - yOpen)));
+    } else {
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(x - bodyW / 2, Math.min(yOpen, yClose), bodyW, Math.max(1, Math.abs(yClose - yOpen)));
+    }
+  });
+
+  /* Signal arrows */
+  signalEvents.forEach(sig => {
+    const x = panX + sig.index * step + step / 2;
+    if (x < 0 || x > chartW) return;
+
+    if (sig.type === 'BUY NOW') {
+      const y = getY(sig.price) + 10;
+      ctx.fillStyle = '#00ff7f';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 6, y + 12);
+      ctx.lineTo(x + 6, y + 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 10px -apple-system, sans-serif';
+      ctx.fillStyle = '#00ff7f';
+      ctx.textAlign = 'center';
+      ctx.fillText('BUY NOW', x, y + 24);
+    } else {
+      const y = getY(sig.price) - 10;
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 6, y - 12);
+      ctx.lineTo(x + 6, y - 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 10px -apple-system, sans-serif';
+      ctx.fillStyle = '#ef4444';
+      ctx.textAlign = 'center';
+      ctx.fillText('SELL NOW', x, y - 16);
+    }
+  });
+
+  ctx.textAlign = 'left';
+
+  /* Last price line */
+  const last = candleHistory[candleHistory.length - 1];
+  const lastY = getY(last.close);
+  ctx.strokeStyle = '#f5a623';
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(0, lastY);
+  ctx.lineTo(chartW, lastY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = '#f5a623';
+  ctx.fillRect(chartW, lastY - 8, 68, 16);
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold 10px monospace';
+  ctx.fillText(last.close.toFixed(2), chartW + 5, lastY + 4);
+
+  /* OHLC banner */
+  document.getElementById('barO').innerText = last.open.toFixed(2);
+  document.getElementById('barH').innerText = last.high.toFixed(2);
+  document.getElementById('barL').innerText = last.low.toFixed(2);
+  document.getElementById('barC').innerText = last.close.toFixed(2);
+}
+
+/* ============================================================
+   MARKET WATCH & VIP MODAL CONTROLS
+   ============================================================ */
+function renderMarketWatch() {
+  const container = document.getElementById('symbolsList');
+  const q = document.getElementById('symFilter').value.toLowerCase();
+
+  const filtered = BOOM_CRASH_CATALOG.filter(s =>
+    s.name.toLowerCase().includes(q) || s.symbol.toLowerCase().includes(q)
+  );
+
+  container.innerHTML = filtered.map(item => `
+    <li class="mw-symbol-row ${item.symbol === currentSymbol ? 'active' : ''}" onclick="selectSymbol('${item.symbol}')">
+      <div>
+        <div class="mw-sym-name">
+          ${item.symbol}
+          ${item.locked ? '<span class="mw-lock">🔒</span>' : ''}
+        </div>
+        <div style="font-size:10px; color:var(--mt5-muted)">${item.name}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="mw-sym-bid" id="bid-${item.symbol}">${item.base.toFixed(2)}</span>
+        <div><span class="mw-tag ${item.locked ? 'vip' : 'free'}">${item.locked ? 'VIP' : 'FREE'}</span></div>
+      </div>
+    </li>
+  `).join('');
+}
+
+function selectSymbol(symbol) {
+  const target = BOOM_CRASH_CATALOG.find(s => s.symbol === symbol);
+  if (!target) return;
+
+  if (target.locked) { showVipModal(target.name); return; }
+
+  currentSymbol = symbol;
+  renderMarketWatch();
+  requestCandles(currentSymbol, currentGranularity);
+
+  /* Auto-close mobile market watch after selection */
+  document.getElementById('marketWatchPanel').classList.remove('open');
+}
+
+function updateBidQuote(symbol, quote) {
+  const el = document.getElementById(`bid-${symbol}`);
+  if (el) el.innerText = quote.toFixed(2);
+}
+
+function showVipModal(name) {
+  document.getElementById('vipPromptText').innerHTML = `
+    <strong>${name}</strong> is an institutional VIP contract reserved for exclusive Telegram members. Contact <strong>@vixstartgy</strong> directly to unlock full access to all 10 Boom &amp; Crash symbols.
+  `;
+  document.getElementById('vipModal').classList.add('show');
+}
+
+function closeVipModal() {
+  document.getElementById('vipModal').classList.remove('show');
+}
+
+function getTfName(sec) {
+  if (sec === 60) return 'M1';
+  if (sec === 300) return 'M5';
+  if (sec === 900) return 'M15';
+  if (sec === 1800) return 'M30';
+  if (sec === 3600) return 'H1';
+  if (sec === 14400) return 'H4';
+  return 'M1';
+}
+
+/* ============================================================
+   EVENT BINDINGS & MOUSE + TOUCH CONTROLS
+   ============================================================ */
+document.querySelectorAll('.tf-pill[data-tf]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tf-pill[data-tf]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentGranularity = parseInt(btn.dataset.tf, 10);
+    requestCandles(currentSymbol, currentGranularity);
+  });
+});
+
+document.getElementById('symFilter').addEventListener('input', renderMarketWatch);
+
+/* Mobile market watch toggle */
+const mobileMwToggle = document.getElementById('mobileMwToggle');
+if (mobileMwToggle) {
+  mobileMwToggle.addEventListener('click', () => {
+    document.getElementById('marketWatchPanel').classList.toggle('open');
+  });
+}
+
+/* Canvas drag & zoom (mouse) */
+const wrap = document.getElementById('chartWrapper');
+wrap.addEventListener('mousedown', e => { isDragging = true; dragStartX = e.clientX - panX; });
+window.addEventListener('mouseup', () => { isDragging = false; });
+wrap.addEventListener('mousemove', e => {
+  if (isDragging) { panX = e.clientX - dragStartX; renderMT5Chart(); }
+});
+wrap.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoom = Math.min(Math.max(0.4, zoom * (e.deltaY < 0 ? 1.12 : 0.88)), 20.0);
+  renderMT5Chart();
+}, { passive: false });
+
+/* Canvas drag & zoom (touch) */
+wrap.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    isDragging = true;
+    dragStartX = e.touches[0].clientX - panX;
+  }
+}, { passive: true });
+wrap.addEventListener('touchmove', e => {
+  if (isDragging && e.touches.length === 1) {
+    panX = e.touches[0].clientX - dragStartX;
+    renderMT5Chart();
+  }
+}, { passive: true });
+wrap.addEventListener('touchend', () => { isDragging = false; });
+
+/* Auto-resize */
+window.addEventListener('resize', renderMT5Chart);
+window.addEventListener('orientationchange', () => setTimeout(renderMT5Chart, 200));
+
+if (window.ResizeObserver) {
+  const ro = new ResizeObserver(() => renderMT5Chart());
+  ro.observe(wrap);
+}
+
+window.addEventListener('load', () => {
+  setTimeout(renderMT5Chart, 60);
+});
+
+/* BOOT */
+renderMarketWatch();
+connectWebSocket();
+</script>
+</body>
+</html>
