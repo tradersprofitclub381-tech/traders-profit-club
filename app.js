@@ -793,8 +793,17 @@
       mobileBackdrop.addEventListener("click", closeMobileMenu);
     }
 
-    dockLinks?.querySelectorAll(".dock-btn").forEach((btn) => {
-      btn.addEventListener("click", closeMobileMenu);
+        dockLinks?.querySelectorAll(".dock-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        // If it's a real navigation link (<a href="...">) — let the
+        // browser start loading the page FIRST, then hide the menu.
+        if (btn.tagName === "A" && btn.getAttribute("href")) {
+          setTimeout(closeMobileMenu, 150);
+        } else {
+          // Filter buttons (All Systems / SMC / etc.) — close immediately.
+          closeMobileMenu();
+        }
+      });
     });
 
     let mobileResizeTimer = null;
